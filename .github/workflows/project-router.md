@@ -1,4 +1,5 @@
 ---
+name: Project Router
 on:
   issues:
     types: [opened, labeled]

@@ -1,4 +1,5 @@
 ---
+name: Repository Orchestrator
 on:
   workflow_dispatch:
 permissions:

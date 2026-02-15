@@ -1,4 +1,5 @@
 ---
+name: Label Sync
 on:
   workflow_dispatch:
   schedule:
