@@ -1,35 +1,30 @@
 ---
-name: Issue Sweeper
-description: Weekly scan of open issues - comments on progress, closes resolved issues with PR links
 on:
   schedule:
     - cron: "0 6 * * 1"
   workflow_dispatch:
 permissions:
   contents: read
-  issues: read
+  issues: write
   pull-requests: read
-engine: copilot
-model: gpt-4o
-max-turns: 50
+engine: claude
 tools:
   github:
-    toolsets: [repos, issues, pull_requests]
-safe-outputs:
-  github-token: ${{ secrets.GITHUB_TOKEN }}
-  add-comment:
-    max: 50
-    target: triggering
-  update-issue:
-    max: 20
-cache-memory:
-  retention-days: 30
-imports:
-  - shared/tools/github-read.md
-  - shared/prompts/issue-analysis.md
+    allowed:
+      - list_issues
+      - get_issue
+      - list_issue_comments
+      - add_issue_comment
+      - update_issue
+      - list_pull_requests
+      - get_pull_request
+      - list_branches
+      - search_code
 ---
 
-# Sweep all open issues for completeness
+# Issue Sweeper
+
+Weekly scan of open issues. Comments on progress, closes resolved issues with PR links.
 
 You are an issue completeness analyst. Your job is to review every open issue in this
 repository and determine its current status.
@@ -67,4 +62,3 @@ For each open issue:
 - Never close an issue unless a merged PR directly references it.
 - Never duplicate comments. Check existing comments before posting.
 - Process issues in order of oldest first.
-- Store sweep results in cache-memory for trend tracking.
