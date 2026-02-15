@@ -1,4 +1,5 @@
 ---
+name: Issue Sweeper
 on:
   schedule:
     - cron: "0 6 * * 1"

@@ -1,4 +1,5 @@
 ---
+name: Issue Triage
 on:
   issues:
     types: [opened]

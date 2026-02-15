@@ -20,7 +20,7 @@ Thank you for your interest in contributing to ai-workflows.
 ## Workflow Guidelines
 
 - All workflows must follow [gh-aw patterns](https://github.github.io/gh-aw/)
-- Use `copilot` as the default engine
+- Use `copilot` as the target engine. Note: the technical preview CLI currently only compiles `claude` and `codex` — workflows will switch to `copilot` once CLI support lands
 - Configure `safe-outputs` for any write operations
 - Import shared components from `shared/` instead of duplicating configuration
 - Keep prompts focused and under 500 words

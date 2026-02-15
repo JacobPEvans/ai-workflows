@@ -8,6 +8,8 @@ Import ai-workflows into your repository using the gh-aw CLI.
 - [gh-aw extension](https://github.github.io/gh-aw/): `gh extension install github/gh-aw`
 - GitHub Copilot Premium subscription (for `copilot` engine)
 
+> **Note:** During the gh-aw technical preview, workflows compile with `engine: claude`. They will switch to `engine: copilot` once CLI support is available.
+
 ## Initialize Your Repository
 
 If your repo doesn't use gh-aw yet:

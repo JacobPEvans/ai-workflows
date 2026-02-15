@@ -1,4 +1,5 @@
 ---
+name: Code Simplifier
 on:
   schedule:
     - cron: "0 4 * * *"
