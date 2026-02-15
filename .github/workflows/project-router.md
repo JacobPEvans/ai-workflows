@@ -1,6 +1,4 @@
 ---
-name: Project Router
-description: Auto-route issues and PRs to GitHub Projects with intelligent field assignment
 on:
   issues:
     types: [opened, labeled]
@@ -10,19 +8,19 @@ permissions:
   contents: read
   issues: read
   pull-requests: read
-engine: copilot
+engine: claude
 tools:
   github:
-    toolsets: [repos, issues, pull_requests]
-safe-outputs:
-  github-token: ${{ secrets.PROJECT_TOKEN }}
-  update-project:
-    max: 1
-imports:
-  - shared/tools/github-read.md
+    allowed:
+      - list_issues
+      - get_issue
+      - get_pull_request
+      - add_labels
 ---
 
-# Route issues and PRs to GitHub Projects
+# Project Router
+
+Auto-route issues and PRs to GitHub Projects with intelligent field assignment.
 
 You are a project board routing agent. When issues or PRs are created or updated,
 add them to the org-level project board with appropriate field values.
