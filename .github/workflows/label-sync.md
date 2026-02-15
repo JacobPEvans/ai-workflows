@@ -1,28 +1,26 @@
 ---
-name: Label Sync
-description: Synchronize canonical labels from .github repo to all target repositories
 on:
   workflow_dispatch:
   schedule:
     - cron: "0 5 * * 0"
 permissions:
   contents: read
-engine: copilot
+  issues: write
+engine: claude
 tools:
   github:
-    toolsets: [repos, issues]
-safe-outputs:
-  github-token: ${{ secrets.PAT_TOKEN }}
-  add-labels:
-    max: 50
-  dispatch-workflow:
-    workflows: [label-sync]
-    max: 10
-imports:
-  - shared/config/label-policy.md
+    allowed:
+      - list_issues
+      - get_issue
+      - add_labels
+      - create_label
+      - get_file_contents
+      - search_code
 ---
 
-# Synchronize labels across repositories
+# Label Sync
+
+Synchronize canonical labels from .github repo to all target repositories.
 
 You are a label synchronization agent. Your job is to keep the canonical label taxonomy
 consistent across all repositories in the JacobPEvans organization.
