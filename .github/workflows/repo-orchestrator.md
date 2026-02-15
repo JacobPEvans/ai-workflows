@@ -1,31 +1,22 @@
 ---
-name: Repository Orchestrator
-description: Hub-and-spoke multi-repo workflow dispatcher
 on:
   workflow_dispatch:
-    inputs:
-      workflow:
-        description: Which workflow to dispatch
-        required: true
-        type: choice
-        options: [issue-sweeper, code-simplifier, label-sync]
-      target-repos:
-        description: Comma-separated repo names or all
-        required: true
-        default: all
 permissions:
   contents: read
-engine: copilot
+  actions: write
+engine: claude
 tools:
   github:
-    toolsets: [repos, actions]
-safe-outputs:
-  github-token: ${{ secrets.PAT_TOKEN }}
-  dispatch-workflow:
-    max: 25
+    allowed:
+      - list_issues
+      - get_issue
+      - search_code
+      - get_file_contents
 ---
 
-# Dispatch workflows across repositories
+# Repository Orchestrator
+
+Hub-and-spoke multi-repo workflow dispatcher.
 
 You are a multi-repo orchestration agent. Your job is to dispatch a specified workflow
 to one or more target repositories.
@@ -40,7 +31,7 @@ to one or more target repositories.
 3. **Validate**: For each target repo, verify the requested workflow exists
    (either locally or available via import).
 
-4. **Dispatch**: Trigger the workflow on each target repo using `dispatch-workflow`.
+4. **Dispatch**: Trigger the workflow on each target repo.
    Include a correlation ID for tracing: `orchestrator-<timestamp>`.
 
 5. **Report**: Summarize which repos received the dispatch, any failures,
