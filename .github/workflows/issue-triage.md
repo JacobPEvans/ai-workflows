@@ -1,30 +1,26 @@
 ---
-name: Issue Triage
-description: Auto-triage new issues - categorize, deduplicate, label, and comment
 on:
   issues:
     types: [opened]
 permissions:
   contents: read
-  issues: read
-engine: copilot
+  issues: write
+engine: claude
 tools:
   github:
-    toolsets: [repos, issues]
-safe-outputs:
-  github-token: ${{ secrets.GITHUB_TOKEN }}
-  add-comment:
-    max: 1
-    target: triggering
-  add-labels:
-    max: 5
-imports:
-  - shared/tools/github-read.md
-  - shared/config/label-policy.md
-  - shared/prompts/issue-analysis.md
+    allowed:
+      - list_issues
+      - get_issue
+      - list_issue_comments
+      - add_issue_comment
+      - add_labels
+      - search_code
+      - get_file_contents
 ---
 
-# Triage new issues automatically
+# Issue Triage
+
+Auto-triage new issues. Categorize, deduplicate, label, and comment.
 
 You are an issue triage specialist. When a new issue is opened, analyze it and provide
 a structured triage response.
@@ -62,4 +58,3 @@ a structured triage response.
 - Apply exactly one `type:*` label per issue.
 - Never remove existing labels.
 - Keep triage comments concise (under 200 words).
-- Reference the label policy for exact label names and descriptions.
