@@ -32,7 +32,7 @@ module.exports = async ({ github, context, core }) => {
   const labels = pr.labels.map(l => l.name);
   if (labels.includes('ai:reviewed')) {
     core.setOutput('should_run', 'false');
-    core.info(`PR #${prNumber} already has claude-reviewed label`);
+    core.info(`PR #${prNumber} already has ai:reviewed label`);
     return;
   }
 
@@ -80,7 +80,8 @@ module.exports = async ({ github, context, core }) => {
   const failedChecks = relevantChecks.filter(c =>
     c.conclusion !== 'success' &&
     c.conclusion !== 'skipped' &&
-    c.conclusion !== 'neutral'
+    c.conclusion !== 'neutral' &&
+    c.conclusion !== 'action_required'
   );
 
   if (failedChecks.length > 0) {
