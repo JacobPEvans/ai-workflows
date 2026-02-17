@@ -30,7 +30,7 @@ Scheduled incremental progress with persistent memory. Uses `cache-memory` for
 state across runs and GitHub Discussions for continuity. Three-phase approach:
 research, configure, execute.
 
-**Used by**: Issue Sweeper, Code Simplifier
+**Used by**: Issue Sweeper, Code Simplifier, Next Steps
 
 **Docs**: [gh-aw DailyOps](https://github.github.io/gh-aw/patterns/dailyops/)
 

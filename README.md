@@ -18,6 +18,7 @@
 | [Label Sync](.github/workflows/label-sync.md) | LabelOps | Weekly + on-demand | Sync canonical labels across all repositories |
 | [Project Router](.github/workflows/project-router.md) | ProjectOps | On issue/PR events | Auto-route to GitHub Projects with smart field assignment |
 | [Repo Orchestrator](.github/workflows/repo-orchestrator.md) | Orchestration | On-demand | Hub-and-spoke multi-repo workflow dispatcher |
+| [Next Steps](.github/workflows/next-steps.md) | DailyOps | Daily 5am UTC | Analyzes merge momentum, suggests next logical action |
 
 ### Custom Agents
 
@@ -26,6 +27,7 @@
 | [Issue Analyst](.github/agents/issue-analyst.md) | Issue categorization, duplicate detection | Issue Triage, Issue Sweeper |
 | [DRY Enforcer](.github/agents/dry-enforcer.md) | Code duplication, dead code, naming | Code Simplifier |
 | [Label Expert](.github/agents/label-expert.md) | Label taxonomy, consistent application | Issue Triage, Label Sync |
+| [Momentum Analyst](.github/agents/momentum-analyst.md) | Merge pattern analysis, direction detection | Next Steps |
 
 ### Shared Components
 
@@ -37,6 +39,7 @@ Importable building blocks for your own workflows:
 | Label Policy | `shared/config/label-policy.md` | Canonical label taxonomy and application rules |
 | DRY Principles | `shared/prompts/dry-principles.md` | Code simplification and DRY enforcement rules |
 | Issue Analysis | `shared/prompts/issue-analysis.md` | Issue categorization and duplicate detection |
+| Merge Momentum | `shared/prompts/merge-momentum.md` | Development direction detection and gap analysis |
 
 ---
 
@@ -128,6 +131,15 @@ On-demand hub workflow:
 - Dispatches any workflow to target repositories
 - Supports `all` or comma-separated repo list
 - Hub-and-spoke pattern for multi-repo operations
+
+### Next Steps
+
+Runs daily at 5am UTC:
+
+- Analyzes last 5-10 merged PRs to detect development direction
+- Identifies gaps: features without tests, config without docs, broken references
+- Creates a draft PR for simple fixes or an issue for complex work
+- Pre-check: requires 2+ human merges in last 7 days to have enough signal
 
 ---
 
