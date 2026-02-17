@@ -25,7 +25,7 @@ Look for these common incomplete patterns:
 |---------------|-------------------|
 | New feature code | Tests for that feature |
 | New config option | Documentation of that option |
-| New module/role | Integration with existing entry points |
+| New module/component | Integration with existing entry points |
 | Renamed file/variable | Updated references in other files |
 | New dependency | Lock file update, version constraint |
 | New workflow | README entry, pattern documentation |

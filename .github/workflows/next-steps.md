@@ -9,6 +9,8 @@ permissions:
   issues: write
   pull-requests: write
 engine: claude
+# Note: compiled lock.yml patched to use CLAUDE_CODE_OAUTH_TOKEN
+# gh-aw compiler defaults to ANTHROPIC_API_KEY; manually updated after compile
 tools:
   github:
     allowed:
