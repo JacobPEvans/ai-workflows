@@ -21,7 +21,14 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  // Gate 2: Skip if already reviewed by Claude
+  // Gate 2: PR must be mergeable (no conflicts)
+  if (pr.mergeable === false) {
+    core.setOutput('should_run', 'false');
+    core.info(`PR #${prNumber} has merge conflicts, skipping`);
+    return;
+  }
+
+  // Gate 3: Skip if already reviewed by Claude
   const labels = pr.labels.map(l => l.name);
   if (labels.includes('claude-reviewed')) {
     core.setOutput('should_run', 'false');
@@ -29,7 +36,7 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  // Gate 3: Skip if skip label present
+  // Gate 4: Skip if skip label present
   const skipLabels = ['skip-claude-review', 'skip-ai-review'];
   if (labels.some(l => skipLabels.includes(l))) {
     core.setOutput('should_run', 'false');
@@ -37,7 +44,7 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  // Gate 4: Must have at least one human review
+  // Gate 5: Must have at least one human review
   const { data: reviews } = await github.rest.pulls.listReviews({
     owner: context.repo.owner,
     repo: context.repo.repo,
@@ -45,7 +52,7 @@ module.exports = async ({ github, context, core }) => {
   });
 
   const humanReviews = reviews.filter(r =>
-    !r.user.login.includes('[bot]') && r.state !== 'PENDING'
+    r.user.type === 'User' && r.state !== 'PENDING'
   );
   if (humanReviews.length === 0) {
     core.setOutput('should_run', 'false');
@@ -53,20 +60,27 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  // Gate 5: All required checks must pass
+  // Gate 6: All checks must be completed and passing
   const { data: checks } = await github.rest.checks.listForRef({
     owner: context.repo.owner,
     repo: context.repo.repo,
     ref: pr.head.sha,
   });
 
-  const failedChecks = checks.check_runs.filter(c =>
-    c.status === 'completed' &&
+  const ownChecks = ['Final PR Review', 'gate-check', 'Claude Final Review', 'Mark as reviewed'];
+  const relevantChecks = checks.check_runs.filter(c => !ownChecks.includes(c.name));
+
+  const pendingChecks = relevantChecks.filter(c => c.status !== 'completed');
+  if (pendingChecks.length > 0) {
+    core.setOutput('should_run', 'false');
+    core.info(`PR #${prNumber} has ${pendingChecks.length} pending checks: ${pendingChecks.map(c => c.name).join(', ')}`);
+    return;
+  }
+
+  const failedChecks = relevantChecks.filter(c =>
     c.conclusion !== 'success' &&
     c.conclusion !== 'skipped' &&
-    c.conclusion !== 'neutral' &&
-    c.name !== 'Final PR Review' &&
-    c.name !== 'gate-check'
+    c.conclusion !== 'neutral'
   );
 
   if (failedChecks.length > 0) {

@@ -111,7 +111,7 @@ jobs:
           Check for these issue categories in priority order:
 
           ### Critical (any one triggers a PR)
-          - **Sensitive data exposure**: API keys, tokens, real IP addresses, internal hostnames, passwords, or PII in documentation files.
+          - **Sensitive data exposure**: API keys, tokens, real IP addresses, internal hostnames, passwords, or PII in documentation files. Check against scrubbing rules: use 192.168.0.* for IPs, example.com/example.local for domains, your-token-here for secrets.
           - **Broken functionality**: Code examples that reference deleted functions, renamed files, or changed APIs.
 
           ### Non-critical (2+ needed to trigger a PR)

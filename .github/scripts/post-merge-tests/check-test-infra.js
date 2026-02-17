@@ -20,8 +20,11 @@ module.exports = async ({ github, context, core }) => {
       core.setOutput('has_tests', 'true');
       core.info(`Found test infrastructure: ${indicator}`);
       return;
-    } catch {
-      // Not found, continue checking
+    } catch (error) {
+      if (error.status === 404) {
+        continue;
+      }
+      throw error;
     }
   }
 
@@ -39,8 +42,10 @@ module.exports = async ({ github, context, core }) => {
       core.info('Found test script in package.json');
       return;
     }
-  } catch {
-    // No package.json
+  } catch (error) {
+    if (error.status !== 404) {
+      throw error;
+    }
   }
 
   // Check pyproject.toml for pytest config
@@ -56,8 +61,10 @@ module.exports = async ({ github, context, core }) => {
       core.info('Found pytest config in pyproject.toml');
       return;
     }
-  } catch {
-    // No pyproject.toml
+  } catch (error) {
+    if (error.status !== 404) {
+      throw error;
+    }
   }
 
   core.setOutput('has_tests', 'false');

@@ -19,24 +19,22 @@ module.exports = async ({ github, context, core }) => {
 
   const docExtensions = ['.md', '.mdx', '.rst', '.txt', '.adoc'];
   const docPaths = ['docs/', 'doc/', 'documentation/', 'wiki/'];
-  const docFiles = ['README', 'CHANGELOG', 'CONTRIBUTING', 'LICENSE', 'CLAUDE', 'AGENTS'];
+  const docFiles = ['readme', 'changelog', 'contributing', 'license', 'claude', 'agents'];
 
   const hasDocChanges = files.some(f => {
     const filename = f.filename.toLowerCase();
     return docExtensions.some(ext => filename.endsWith(ext))
       || docPaths.some(p => filename.startsWith(p))
-      || docFiles.some(d => filename.toUpperCase().includes(d));
+      || docFiles.some(d => filename.includes(d));
   });
 
   // Code changes that should trigger doc review
+  const codeExtensions = ['.js', '.ts', '.py', '.go', '.rs', '.rb', '.tf', '.nix', '.yml', '.yaml'];
   const hasCodeChanges = files.some(f => {
-    const filename = f.filename;
+    const filename = f.filename.toLowerCase();
     return !filename.startsWith('.github/')
       && !docExtensions.some(ext => filename.endsWith(ext))
-      && (filename.endsWith('.js') || filename.endsWith('.ts') || filename.endsWith('.py')
-        || filename.endsWith('.go') || filename.endsWith('.rs') || filename.endsWith('.rb')
-        || filename.endsWith('.tf') || filename.endsWith('.nix') || filename.endsWith('.yml')
-        || filename.endsWith('.yaml'));
+      && codeExtensions.some(ext => filename.endsWith(ext));
   });
 
   const isRelevant = hasDocChanges || hasCodeChanges;
