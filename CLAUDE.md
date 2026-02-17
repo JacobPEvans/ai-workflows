@@ -1,6 +1,6 @@
 # ai-workflows
 
-Reusable AI agent workflows for GitHub Copilot Agentic Workflows (gh-aw).
+Reusable AI agent workflows using the Claude engine for GitHub Agentic Workflows (gh-aw).
 
 ## Workflow Authoring Rules
 
