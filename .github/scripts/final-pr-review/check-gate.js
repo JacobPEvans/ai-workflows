@@ -30,14 +30,14 @@ module.exports = async ({ github, context, core }) => {
 
   // Gate 3: Skip if already reviewed by Claude
   const labels = pr.labels.map(l => l.name);
-  if (labels.includes('claude-reviewed')) {
+  if (labels.includes('ai:reviewed')) {
     core.setOutput('should_run', 'false');
     core.info(`PR #${prNumber} already has claude-reviewed label`);
     return;
   }
 
   // Gate 4: Skip if skip label present
-  const skipLabels = ['skip-claude-review', 'skip-ai-review'];
+  const skipLabels = ['ai:skip-review'];
   if (labels.some(l => skipLabels.includes(l))) {
     core.setOutput('should_run', 'false');
     core.info(`PR #${prNumber} has skip label`);
