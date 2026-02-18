@@ -70,7 +70,7 @@ jobs:
           envsubst < .ai-workflows/.github/configs/mcp-github.json.template > /tmp/mcp-config/mcp-servers.json
 
       - name: Run Claude
-        uses: anthropics/claude-code-base-action@v0.0.56
+        uses: anthropics/claude-code-base-action@v0.0.63
         with:
           allowed_tools: "Glob,Grep,LS,NotebookRead,Read,Task,mcp__github__add_issue_comment,mcp__github__create_issue,mcp__github__get_file_contents,mcp__github__get_issue,mcp__github__list_commits,mcp__github__list_issues,mcp__github__search_code"
           anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

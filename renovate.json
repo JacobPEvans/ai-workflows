@@ -1,0 +1,10 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "packageRules": [
+    {
+      "matchPackageNames": ["anthropics/claude-code-base-action"],
+      "groupName": "claude-code-base-action"
+    }
+  ]
+}
