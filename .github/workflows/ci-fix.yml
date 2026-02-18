@@ -1,0 +1,166 @@
+# CI Failure Auto-Fix
+#
+# Reusable workflow: called by consumer repos when CI fails on a PR branch.
+# Analyzes failure logs and pushes fixes (max 2 attempts per PR).
+
+name: CI Fix (Claude)
+
+on:
+  workflow_call:
+    inputs:
+      repo_context:
+        description: "Brief description of the repository"
+        type: string
+        required: true
+      ci_structure:
+        description: "Description of CI workflows and what they check"
+        type: string
+        required: true
+      extra_tools:
+        description: "Additional allowed tools beyond defaults (e.g., Bash(tofu:*))"
+        type: string
+        default: ""
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ci-fix-${{ github.repository }}-${{ github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  should-fix:
+    name: Check if fix needed
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      issues: read
+    outputs:
+      pr_number: ${{ steps.find-pr.outputs.pr_number }}
+      should_run: ${{ steps.check-attempts.outputs.should_run }}
+      attempt: ${{ steps.check-attempts.outputs.attempt }}
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v4
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Find associated PR
+        id: find-pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/ci-fix/find-pr.js');
+            await run({ github, context, core });
+
+      - name: Check attempt count
+        id: check-attempts
+        if: steps.find-pr.outputs.pr_number != ''
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.find-pr.outputs.pr_number }}
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/ci-fix/check-attempts.js');
+            await run({ github, context, core });
+
+  post-attempt-comment:
+    name: Post attempt marker
+    needs: should-fix
+    if: needs.should-fix.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v4
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Post tracking comment
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ needs.should-fix.outputs.pr_number }}
+          ATTEMPT: ${{ needs.should-fix.outputs.attempt }}
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/ci-fix/post-attempt-comment.js');
+            await run({ github, context, core });
+
+  get-failure-details:
+    name: Get failure logs
+    needs: should-fix
+    if: needs.should-fix.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    outputs:
+      failure_logs: ${{ steps.get-logs.outputs.logs }}
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v4
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Download failure logs
+        id: get-logs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/ci-fix/get-failure-logs.js');
+            await run({ github, context, core });
+
+  fix:
+    name: Claude Fix
+    needs: [should-fix, get-failure-details, post-attempt-comment]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    timeout-minutes: 15
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0
+          token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@v1
+        env:
+          REPO_CONTEXT: ${{ inputs.repo_context }}
+          CI_STRUCTURE: ${{ inputs.ci_structure }}
+          FAILURE_LOGS: ${{ needs.get-failure-details.outputs.failure_logs }}
+          ATTEMPT_NUM: ${{ needs.should-fix.outputs.attempt }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          direct_prompt: |
+            ## CI Failure Auto-Fix
+
+            You are fixing a CI failure. Context: ${{ inputs.repo_context }}
+
+            ### CI Structure
+            ${{ inputs.ci_structure }}
+
+            ### Failure Logs
+            ```
+            ${{ needs.get-failure-details.outputs.failure_logs }}
+            ```
+
+            ### Instructions
+            1. Analyze the failure logs to identify the root cause
+            2. Fix the issue in the source files
+            3. Commit the fix with message: "fix: resolve CI failure (auto-fix attempt ${{ needs.should-fix.outputs.attempt }})"
+            4. Push to the PR branch
+
+            Only fix what the CI is complaining about. Do not refactor or improve unrelated code.
+
+          allowed_tools: "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"

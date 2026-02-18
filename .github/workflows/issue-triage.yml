@@ -1,0 +1,97 @@
+# Auto-triage new issues: categorize, deduplicate, label, and comment
+name: "Issue Triage"
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: issue-triage-${{ github.repository }}
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub MCP
+        run: |
+          mkdir -p /tmp/mcp-config
+          cat > /tmp/mcp-config/mcp-servers.json << 'MCPEOF'
+          {
+            "mcpServers": {
+              "github": {
+                "command": "docker",
+                "args": ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "ghcr.io/github/github-mcp-server:sha-45e90ae"],
+                "env": {
+                  "GITHUB_PERSONAL_ACCESS_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
+                }
+              }
+            }
+          }
+          MCPEOF
+
+      - name: Create prompt
+        run: |
+          mkdir -p /tmp/aw-prompts
+          cat > /tmp/aw-prompts/prompt.txt << 'PROMPT_EOF'
+          # Issue Triage
+
+          Auto-triage new issues. Categorize, deduplicate, label, and comment.
+
+          You are an issue triage specialist. When a new issue is opened, analyze it and provide
+          a structured triage response.
+
+          ## Process
+
+          1. **Read the issue** carefully, including title, body, and any form-filled fields.
+
+          2. **Check for duplicates**: Search all open issues for similar titles or overlapping
+             descriptions. If a likely duplicate exists, apply the `duplicate` label and comment:
+             `Possible duplicate of #<number>. Please review and close if confirmed.`
+
+          3. **Categorize by type**: Determine the `type:*` label based on content:
+             - Code not working as expected: `type:bug`
+             - New capability requested: `type:feature`
+             - Documentation changes: `type:docs`
+             - Maintenance/dependencies: `type:chore`
+             - CI/CD changes: `type:ci`
+             - Test additions: `type:test`
+             - Code restructuring: `type:refactor`
+             - Speed/efficiency: `type:perf`
+             - Compatibility changes: `type:breaking`
+
+          4. **Respect form selections**: If the issue was created from a form template and already
+             has priority/size selections in the body, do not override them. The auto-label workflow
+             handles those.
+
+          5. **Comment with triage summary**: Post a brief comment with:
+             - Applied labels and reasoning
+             - Duplicate reference if found
+             - Suggested priority/size if not set by form
+
+          ## Rules
+
+          - Apply exactly one `type:*` label per issue.
+          - Never remove existing labels.
+          - Keep triage comments concise (under 200 words).
+          PROMPT_EOF
+
+      - name: Run Claude
+        uses: anthropics/claude-code-base-action@v0.0.56
+        with:
+          allowed_tools: "Glob,Grep,LS,NotebookRead,Read,Task,mcp__github__add_issue_comment,mcp__github__add_labels,mcp__github__download_workflow_run_artifact,mcp__github__get_code_scanning_alert,mcp__github__get_commit,mcp__github__get_dependabot_alert,mcp__github__get_discussion,mcp__github__get_discussion_comments,mcp__github__get_file_contents,mcp__github__get_issue,mcp__github__get_issue_comments,mcp__github__get_job_logs,mcp__github__get_me,mcp__github__get_notification_details,mcp__github__get_pull_request,mcp__github__get_pull_request_comments,mcp__github__get_pull_request_diff,mcp__github__get_pull_request_files,mcp__github__get_pull_request_reviews,mcp__github__get_pull_request_status,mcp__github__get_secret_scanning_alert,mcp__github__get_tag,mcp__github__get_workflow_run,mcp__github__get_workflow_run_logs,mcp__github__get_workflow_run_usage,mcp__github__list_branches,mcp__github__list_code_scanning_alerts,mcp__github__list_commits,mcp__github__list_dependabot_alerts,mcp__github__list_discussion_categories,mcp__github__list_discussions,mcp__github__list_issue_comments,mcp__github__list_issues,mcp__github__list_notifications,mcp__github__list_pull_requests,mcp__github__list_secret_scanning_alerts,mcp__github__list_tags,mcp__github__list_workflow_jobs,mcp__github__list_workflow_run_artifacts,mcp__github__list_workflow_runs,mcp__github__list_workflows,mcp__github__search_code,mcp__github__search_issues,mcp__github__search_orgs,mcp__github__search_pull_requests,mcp__github__search_repositories,mcp__github__search_users"
+          anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_env: |
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          model: claude-sonnet-4-5-20250929
+          mcp_config: /tmp/mcp-config/mcp-servers.json
+          prompt_file: /tmp/aw-prompts/prompt.txt
+          timeout_minutes: "5"

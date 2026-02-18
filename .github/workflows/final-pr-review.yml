@@ -1,0 +1,114 @@
+# Final PR Review
+#
+# Reusable workflow: last-eyes Claude review when PR becomes mergeable.
+# Triggers when all checks pass and a human review exists.
+# Adds ai:reviewed label to prevent re-triggering.
+
+name: Final PR Review
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: final-pr-review-${{ github.repository }}-${{ github.event.pull_request.number || github.event.check_suite.pull_requests[0].number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  gate-check:
+    name: Check review gate
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      issues: read
+      checks: read
+    outputs:
+      should_run: ${{ steps.gate.outputs.should_run }}
+      pr_number: ${{ steps.gate.outputs.pr_number }}
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v4
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Check gate conditions
+        id: gate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/final-pr-review/check-gate.js');
+            await run({ github, context, core });
+
+  review:
+    name: Claude Final Review
+    needs: gate-check
+    if: needs.gate-check.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      checks: read
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          model: claude-sonnet-4-5-20250929
+          direct_prompt: |
+            ## Final PR Review
+
+            You are performing a final architectural review of PR #${{ needs.gate-check.outputs.pr_number }}.
+
+            ### Review Scope
+
+            Focus on what human reviewers naturally miss:
+
+            1. **Cross-cutting concerns**: Do changes in one file break assumptions in another?
+            2. **Architectural coherence**: Do changes follow the repository's established patterns?
+            3. **Reviewer feedback addressed**: Did the author actually address human review feedback?
+            4. **Merge readiness**: TODO/FIXME/HACK comments or debugging artifacts left behind?
+            5. **Risk assessment**: What could go wrong after merge?
+
+            ### Instructions
+
+            1. Read the PR diff and changed files
+            2. Check existing human reviews to avoid repeating their feedback
+            3. If you find issues, use COMMENT for suggestions or REQUEST_CHANGES for merge-blocking problems
+            4. If the PR looks good, APPROVE with a brief summary
+            5. Maximum 5 review comments — focus on highest-impact findings
+
+          allowed_tools: "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(gh:*)"
+
+  add-label:
+    name: Mark as reviewed
+    needs: [gate-check, review]
+    if: needs.gate-check.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v4
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Add ai:reviewed label
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ needs.gate-check.outputs.pr_number }}
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/final-pr-review/add-label.js');
+            await run({ github, context, core });
