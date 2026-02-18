@@ -6,10 +6,35 @@ Reusable AI agent workflows for GitHub Actions. Consumer repos call these with t
 
 This repo is the single source of truth for CI/CD automation workflows. Each workflow is a GitHub reusable workflow (`on: workflow_call`) that consumer repos invoke via `uses: JacobPEvans/ai-workflows/.github/workflows/<name>.yml@v0.1.0`.
 
+### Directory Structure
+
+```
+.github/
+  configs/
+    mcp-github.json.template       # MCP server config template (envsubst at runtime)
+  prompts/
+    *.md                            # Prompt files (one per workflow, 14 total)
+  scripts/
+    render-prompt.sh                # Shared: envsubst + GITHUB_OUTPUT for action-based workflows
+    ci-fix/                         # Extracted JS scripts per workflow
+    best-practices/
+    final-pr-review/
+    post-merge-tests/
+    post-merge-docs-review/
+  workflows/
+    *.yml                           # Pure YAML workflow definitions (no embedded content)
+```
+
 ### Workflow Types
 
 **Action-based** (use `claude-code-action@v1`): ci-fix, claude-review, final-pr-review
+- Prompts rendered via `render-prompt.sh` + step output (envsubst)
+- No MCP config needed
+
 **Agent-based** (use `claude-code-base-action@v0.0.56` + MCP): all others
+- Static prompts: `prompt_file:` points directly to `.github/prompts/<name>.md`
+- Dynamic prompts (post-merge-tests, post-merge-docs-review): envsubst to temp file
+- MCP config: envsubst on `.github/configs/mcp-github.json.template`
 
 ### Consumer Repo Caller Pattern
 
@@ -25,15 +50,18 @@ jobs:
     secrets: inherit
 ```
 
-### Cross-repo Script Checkout
+### Cross-repo Checkout
 
-Workflows needing scripts check out this repo at runtime:
+Workflows check out this repo at runtime for scripts, prompts, and configs:
 
 ```yaml
 - uses: actions/checkout@v4
   with:
     repository: JacobPEvans/ai-workflows
-    sparse-checkout: .github/scripts
+    sparse-checkout: |
+      .github/scripts
+      .github/prompts
+      .github/configs
     path: .ai-workflows
 ```
 
@@ -45,6 +73,8 @@ Never mix programming languages inline within workflow files. Each file must con
 
 - `.yml` files contain only YAML (workflow configuration)
 - `.js` files contain only JavaScript
+- `.md` files contain prompts (with `${VAR}` placeholders for dynamic values)
+- `.json.template` files contain JSON config templates
 
 **Inline threshold**: Scripts of 5 lines or fewer may be embedded directly in YAML workflow steps. Scripts exceeding 5 lines must be extracted to a dedicated file under `.github/scripts/` and referenced via the cross-repo checkout pattern.
 
@@ -66,10 +96,6 @@ module.exports = async ({ github, context, core }) => {
 ```
 
 Pass GitHub Actions expression values (`${{ }}`) via `env:` on the step, then read them with `process.env` in the script. Never interpolate expressions inside `.js` files.
-
-### Source Documentation
-
-The `.md` files in `.github/workflows/` are retained as documentation for each workflow's design and prompt content. They are not compiled — the `.yml` files are the authoritative workflow definitions.
 
 ### Authentication
 

@@ -133,34 +133,27 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-      - name: Run Claude Code
-        uses: anthropics/claude-code-action@v1
+      - name: Checkout ai-workflows prompts
+        uses: actions/checkout@v4
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: |
+            .github/scripts
+            .github/prompts
+          path: .ai-workflows
+
+      - name: Render prompt
+        id: prompt
         env:
           REPO_CONTEXT: ${{ inputs.repo_context }}
           CI_STRUCTURE: ${{ inputs.ci_structure }}
           FAILURE_LOGS: ${{ needs.get-failure-details.outputs.failure_logs }}
           ATTEMPT_NUM: ${{ needs.should-fix.outputs.attempt }}
+        run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/ci-fix.md
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          direct_prompt: |
-            ## CI Failure Auto-Fix
-
-            You are fixing a CI failure. Context: ${{ inputs.repo_context }}
-
-            ### CI Structure
-            ${{ inputs.ci_structure }}
-
-            ### Failure Logs
-            ```
-            ${{ needs.get-failure-details.outputs.failure_logs }}
-            ```
-
-            ### Instructions
-            1. Analyze the failure logs to identify the root cause
-            2. Fix the issue in the source files
-            3. Commit the fix with message: "fix: resolve CI failure (auto-fix attempt ${{ needs.should-fix.outputs.attempt }})"
-            4. Push to the PR branch
-
-            Only fix what the CI is complaining about. Do not refactor or improve unrelated code.
-
+          direct_prompt: ${{ steps.prompt.outputs.content }}
           allowed_tools: "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"

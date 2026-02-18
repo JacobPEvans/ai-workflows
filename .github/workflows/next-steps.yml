@@ -28,104 +28,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Checkout ai-workflows
+        uses: actions/checkout@v4
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: |
+            .github/prompts
+            .github/configs
+          path: .ai-workflows
+
       - name: Setup GitHub MCP
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p /tmp/mcp-config
-          cat > /tmp/mcp-config/mcp-servers.json << 'MCPEOF'
-          {
-            "mcpServers": {
-              "github": {
-                "command": "docker",
-                "args": ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "ghcr.io/github/github-mcp-server:sha-45e90ae"],
-                "env": {
-                  "GITHUB_PERSONAL_ACCESS_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
-                }
-              }
-            }
-          }
-          MCPEOF
-
-      - name: Create prompt
-        run: |
-          mkdir -p /tmp/aw-prompts
-          cat > /tmp/aw-prompts/prompt.txt << 'PROMPT_EOF'
-          # Next Steps
-
-          Daily momentum analyzer. Detects development direction from recent merges and suggests
-          the logical next action.
-
-          You are a development momentum analyst. Your job is to identify what the team has been
-          working on and suggest the single most impactful next step.
-
-          ## Pre-check
-
-          Count merged pull requests from the last 7 days. Filter out bot accounts (containing
-          `[bot]`, `noreply`, `github-actions`). If fewer than 2 human merges remain, exit without
-          action — there is not enough signal to detect direction.
-
-          ## Analysis
-
-          Review the last 5-10 merged PRs:
-
-          1. **Files changed**: Which directories and file types are being modified most?
-          2. **Change type**: Are changes adding features, fixing bugs, improving docs, or refactoring?
-          3. **TODOs and FIXMEs**: Search the codebase for TODO/FIXME comments added in recent commits.
-          4. **Direction detection**: Categorize the current development direction:
-             - Area expansion (new features in a specific domain)
-             - Reliability push (bug fixes, error handling, tests)
-             - Documentation sprint (README updates, comments, guides)
-             - Infrastructure improvement (CI/CD, tooling, dependencies)
-             - Maintenance cycle (cleanup, refactoring, debt reduction)
-
-          ## Gap Detection
-
-          Look for incomplete follow-through:
-
-          - Features added without tests
-          - Config changes without documentation updates
-          - New modules without integration into existing systems
-          - TODOs or FIXMEs that reference the recently merged work
-          - Broken cross-references between files
-
-          ## Duplicate Check
-
-          Before creating any output, search existing open issues and draft PRs for overlap.
-          If a matching issue or PR already exists, exit without action.
-
-          ## Output
-
-          Choose exactly ONE action based on impact:
-
-          ### Option A: Draft PR (for simple changes)
-
-          If the fix is straightforward (< 50 lines changed, <= 3 files):
-          - Create a draft PR with the fix
-          - Title format: `chore: [description of next step]`
-          - Body must explain: what was detected, why this is the logical next step, what changed
-
-          ### Option B: Issue (for complex work)
-
-          If the work requires design decisions or significant changes:
-          - Create an issue describing the suggested next step
-          - Title format: `[type]: [description]`
-          - Body must include: context from recent merges, specific gap identified, suggested approach
-          - Apply appropriate `type:*` label
-
-          ## Rules
-
-          - Never create both a PR and an issue in the same run
-          - Draft PRs only — never open ready-for-review PRs
-          - One action per run maximum
-          - Do not suggest work that contradicts recent merge direction
-          - Focus on momentum — suggest what naturally comes next, not what would be ideal
-          PROMPT_EOF
+          envsubst < .ai-workflows/.github/configs/mcp-github.json.template > /tmp/mcp-config/mcp-servers.json
 
       - name: Execute Claude Code
         uses: anthropics/claude-code-base-action@v0.0.56
         with:
           anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           model: claude-sonnet-4-5-20250929
-          prompt_file: /tmp/aw-prompts/prompt.txt
+          prompt_file: .ai-workflows/.github/prompts/next-steps.md
           mcp_config: /tmp/mcp-config/mcp-servers.json
           allowed_tools: Glob,Grep,LS,NotebookRead,Read,Task,mcp__github__create_issue,mcp__github__create_pull_request,mcp__github__download_workflow_run_artifact,mcp__github__get_code_scanning_alert,mcp__github__get_commit,mcp__github__get_dependabot_alert,mcp__github__get_discussion,mcp__github__get_discussion_comments,mcp__github__get_file_contents,mcp__github__get_issue,mcp__github__get_issue_comments,mcp__github__get_job_logs,mcp__github__get_me,mcp__github__get_notification_details,mcp__github__get_pull_request,mcp__github__get_pull_request_comments,mcp__github__get_pull_request_diff,mcp__github__get_pull_request_files,mcp__github__get_pull_request_reviews,mcp__github__get_pull_request_status,mcp__github__get_secret_scanning_alert,mcp__github__get_tag,mcp__github__get_workflow_run,mcp__github__get_workflow_run_logs,mcp__github__get_workflow_run_usage,mcp__github__list_branches,mcp__github__list_code_scanning_alerts,mcp__github__list_commits,mcp__github__list_dependabot_alerts,mcp__github__list_discussion_categories,mcp__github__list_discussions,mcp__github__list_issue_comments,mcp__github__list_issues,mcp__github__list_notifications,mcp__github__list_pull_requests,mcp__github__list_secret_scanning_alerts,mcp__github__list_tags,mcp__github__list_workflow_jobs,mcp__github__list_workflow_run_artifacts,mcp__github__list_workflow_runs,mcp__github__list_workflows,mcp__github__search_code,mcp__github__search_issues,mcp__github__search_orgs,mcp__github__search_pull_requests,mcp__github__search_repositories,mcp__github__search_users
           claude_env: |

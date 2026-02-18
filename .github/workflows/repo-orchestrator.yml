@@ -21,57 +21,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Checkout ai-workflows
+        uses: actions/checkout@v4
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: |
+            .github/prompts
+            .github/configs
+          path: .ai-workflows
+
       - name: Setup GitHub MCP
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p /tmp/mcp-config
-          cat > /tmp/mcp-config/mcp-servers.json << 'MCPEOF'
-          {
-            "mcpServers": {
-              "github": {
-                "command": "docker",
-                "args": ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "ghcr.io/github/github-mcp-server:sha-45e90ae"],
-                "env": {
-                  "GITHUB_PERSONAL_ACCESS_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
-                }
-              }
-            }
-          }
-          MCPEOF
-
-      - name: Create prompt
-        run: |
-          mkdir -p /tmp/aw-prompts
-          cat > /tmp/aw-prompts/prompt.txt << 'PROMPT_EOF'
-          # Repository Orchestrator
-
-          Hub-and-spoke multi-repo workflow dispatcher.
-
-          You are a multi-repo orchestration agent. Your job is to dispatch a specified workflow
-          to one or more target repositories.
-
-          ## Process
-
-          1. **Parse inputs**: Read which workflow to dispatch and which repos to target.
-
-          2. **Resolve target repos**: If `target-repos` is `all`, list all non-archived repos
-             in the JacobPEvans organization. Otherwise, split the comma-separated list.
-
-          3. **Validate**: For each target repo, verify the requested workflow exists
-             (either locally or available via import).
-
-          4. **Dispatch**: Trigger the workflow on each target repo.
-             Include a correlation ID for tracing: `orchestrator-<timestamp>`.
-
-          5. **Report**: Summarize which repos received the dispatch, any failures,
-             and the correlation ID for follow-up.
-
-          ## Rules
-
-          - Never dispatch to archived repositories.
-          - Never dispatch more than 25 workflows in a single run.
-          - Always include the correlation ID in dispatch payloads.
-          - Log all dispatches for auditability.
-          PROMPT_EOF
+          envsubst < .ai-workflows/.github/configs/mcp-github.json.template > /tmp/mcp-config/mcp-servers.json
 
       - name: Run Claude
         uses: anthropics/claude-code-base-action@v0.0.56
@@ -82,5 +46,5 @@ jobs:
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           model: claude-sonnet-4-5-20250929
           mcp_config: /tmp/mcp-config/mcp-servers.json
-          prompt_file: /tmp/aw-prompts/prompt.txt
+          prompt_file: .ai-workflows/.github/prompts/repo-orchestrator.md
           timeout_minutes: "5"
