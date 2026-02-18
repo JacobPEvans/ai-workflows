@@ -27,6 +27,7 @@ jobs:
   review:
     name: Claude Code Review
     if: >-
+      github.event.sender.type != 'Bot' &&
       github.event.pull_request != null &&
       !contains(github.event.pull_request.labels.*.name, 'ai:skip-review')
     runs-on: ubuntu-latest

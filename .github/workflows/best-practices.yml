@@ -17,6 +17,7 @@ concurrency:
 jobs:
   check-recent-activity:
     name: Check for recent human activity
+    if: github.event.sender.type != 'Bot'
     runs-on: ubuntu-latest
     permissions:
       contents: read

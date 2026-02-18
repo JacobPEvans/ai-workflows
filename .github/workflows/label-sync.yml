@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   sync:
+    if: github.event.sender.type != 'Bot'
     runs-on: ubuntu-latest
     permissions:
       contents: read
