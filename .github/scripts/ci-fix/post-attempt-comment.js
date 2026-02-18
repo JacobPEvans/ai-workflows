@@ -1,5 +1,9 @@
 module.exports = async ({ github, context, core }) => {
-  const prNumber = parseInt(process.env.PR_NUMBER);
+  const prNumber = parseInt(process.env.PR_NUMBER, 10);
+  if (isNaN(prNumber)) {
+    core.setFailed('PR_NUMBER is not a valid number');
+    return;
+  }
   const attempt = process.env.ATTEMPT;
   await github.rest.issues.createComment({
     owner: context.repo.owner,

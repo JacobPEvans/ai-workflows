@@ -1,6 +1,10 @@
 module.exports = async ({ github, context, core }) => {
-  const prNumber = parseInt(process.env.PR_NUMBER);
-  const { data: comments } = await github.rest.issues.listComments({
+  const prNumber = parseInt(process.env.PR_NUMBER, 10);
+  if (isNaN(prNumber)) {
+    core.setFailed('PR_NUMBER is not a valid number');
+    return;
+  }
+  const comments = await github.paginate(github.rest.issues.listComments, {
     owner: context.repo.owner,
     repo: context.repo.repo,
     issue_number: prNumber,

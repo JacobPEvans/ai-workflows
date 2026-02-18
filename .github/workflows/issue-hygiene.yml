@@ -117,7 +117,7 @@ jobs:
           anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           model: claude-sonnet-4-5-20250929
           prompt_file: /tmp/aw-prompts/prompt.txt
-          mcp_config_file: /tmp/mcp-config/mcp-servers.json
+          mcp_config: /tmp/mcp-config/mcp-servers.json
           allowed_tools: Glob,Grep,LS,NotebookRead,Read,Task,mcp__github__add_issue_comment,mcp__github__get_issue,mcp__github__get_pull_request,mcp__github__list_issue_comments,mcp__github__list_issues,mcp__github__list_pull_requests,mcp__github__search_issues
           claude_env: |
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -27,7 +27,7 @@ jobs:
   review:
     name: Claude Code Review
     if: >-
-      github.event_name == 'pull_request' &&
+      github.event.pull_request != null &&
       !contains(github.event.pull_request.labels.*.name, 'ai:skip-review')
     runs-on: ubuntu-latest
     permissions:
@@ -71,7 +71,7 @@ jobs:
   interactive:
     name: Claude Interactive
     if: >-
-      github.event_name == 'issue_comment' &&
+      github.event.comment != null &&
       contains(github.event.comment.body, '@claude')
     runs-on: ubuntu-latest
     permissions:

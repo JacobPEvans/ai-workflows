@@ -1,12 +1,12 @@
 module.exports = async ({ github, context, core }) => {
   const runId = context.payload.workflow_run.id;
-  const { data: jobs } = await github.rest.actions.listJobsForWorkflowRun({
+  const allJobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
     owner: context.repo.owner,
     repo: context.repo.repo,
     run_id: runId
   });
   let logs = '';
-  for (const job of jobs.jobs.filter(j => j.conclusion === 'failure')) {
+  for (const job of allJobs.filter(j => j.conclusion === 'failure')) {
     logs += `\n=== FAILED JOB: ${job.name} ===\n`;
     try {
       const logData = await github.rest.actions.downloadJobLogsForWorkflowRun({
