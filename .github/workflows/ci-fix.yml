@@ -72,7 +72,9 @@ jobs:
   post-attempt-comment:
     name: Post attempt marker
     needs: should-fix
-    if: needs.should-fix.outputs.should_run == 'true'
+    if: >-
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      needs.should-fix.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -98,7 +100,9 @@ jobs:
   get-failure-details:
     name: Get failure logs
     needs: should-fix
-    if: needs.should-fix.outputs.should_run == 'true'
+    if: >-
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      needs.should-fix.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -154,7 +158,7 @@ jobs:
           CI_STRUCTURE: ${{ inputs.ci_structure }}
           FAILURE_LOGS: ${{ needs.get-failure-details.outputs.failure_logs }}
           ATTEMPT_NUM: ${{ needs.should-fix.outputs.attempt }}
-        run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/ci-fix.md
+        run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/ci-fix.md FAILURE_LOGS REPO_CONTEXT CI_STRUCTURE ATTEMPT_NUM
 
       - name: Run Claude Code
         uses: anthropics/claude-code-action@v1

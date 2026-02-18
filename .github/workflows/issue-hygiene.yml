@@ -11,10 +11,7 @@ on:
   workflow_call:
   workflow_dispatch:
 
-permissions:
-  contents: read
-  issues: write
-  pull-requests: read
+permissions: {}
 
 concurrency:
   group: issue-hygiene-${{ github.repository }}
@@ -23,6 +20,10 @@ concurrency:
 jobs:
   hygiene:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
     timeout-minutes: 5
     steps:
       - name: Checkout repository
@@ -45,7 +46,7 @@ jobs:
           envsubst < .ai-workflows/.github/configs/mcp-github.json.template > /tmp/mcp-config/mcp-servers.json
 
       - name: Execute Claude Code
-        uses: anthropics/claude-code-base-action@v0.0.56
+        uses: anthropics/claude-code-base-action@v0.0.63
         with:
           anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           model: claude-sonnet-4-5-20250929

@@ -79,7 +79,7 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           model: claude-sonnet-4-5-20250929
           direct_prompt: ${{ steps.prompt.outputs.content }}
-          allowed_tools: "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(gh:*)"
+          allowed_tools: "Read,Glob,Grep,LS,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr review:*)"
 
   add-label:
     name: Mark as reviewed
