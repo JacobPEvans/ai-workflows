@@ -2,6 +2,9 @@
 #
 # Reusable workflow: called by consumer repos when CI fails on a PR branch.
 # Analyzes failure logs and pushes fixes (max 2 attempts per PR).
+#
+# Security: The fix job includes a fork guard to prevent untrusted code checkout
+# in the privileged workflow_run context (CodeQL actions/untrusted-checkout/high).
 
 name: CI Fix (Claude)
 
@@ -120,6 +123,8 @@ jobs:
   fix:
     name: Claude Fix
     needs: [should-fix, get-failure-details, post-attempt-comment]
+    # Security: fork guard — only checkout branches from the same repository, never forks
+    if: github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
       contents: write
