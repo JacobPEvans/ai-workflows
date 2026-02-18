@@ -19,6 +19,7 @@ concurrency:
 jobs:
   gate-check:
     name: Check review gate
+    if: github.event.sender.type != 'Bot'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read

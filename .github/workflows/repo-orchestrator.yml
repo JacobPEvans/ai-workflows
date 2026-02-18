@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   orchestrate:
+    if: github.event.sender.type != 'Bot'
     runs-on: ubuntu-latest
     permissions:
       actions: write
