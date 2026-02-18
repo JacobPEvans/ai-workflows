@@ -1,0 +1,56 @@
+# Issue Hygiene
+#
+# Companion to Issue Sweeper. Detects duplicates, links merged PRs, flags wontfix
+# candidates, and suggests issue combinations.
+#
+# This is a reusable workflow that can be called from other repositories.
+
+name: Issue Hygiene
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: issue-hygiene-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout ai-workflows
+        uses: actions/checkout@v4
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: |
+            .github/prompts
+            .github/configs
+          path: .ai-workflows
+
+      - name: Setup GitHub MCP
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p /tmp/mcp-config
+          envsubst < .ai-workflows/.github/configs/mcp-github.json.template > /tmp/mcp-config/mcp-servers.json
+
+      - name: Execute Claude Code
+        uses: anthropics/claude-code-base-action@v0.0.56
+        with:
+          anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          model: claude-sonnet-4-5-20250929
+          prompt_file: .ai-workflows/.github/prompts/issue-hygiene.md
+          mcp_config: /tmp/mcp-config/mcp-servers.json
+          allowed_tools: Glob,Grep,LS,NotebookRead,Read,Task,mcp__github__add_issue_comment,mcp__github__get_issue,mcp__github__get_pull_request,mcp__github__list_issue_comments,mcp__github__list_issues,mcp__github__list_pull_requests,mcp__github__search_issues
+          claude_env: |
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

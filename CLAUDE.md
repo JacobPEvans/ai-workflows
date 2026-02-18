@@ -1,6 +1,69 @@
 # ai-workflows
 
-Reusable AI agent workflows using the Claude engine for GitHub Agentic Workflows (gh-aw).
+Reusable AI agent workflows for GitHub Actions. Consumer repos call these with thin ~10-20 line callers.
+
+## Architecture
+
+This repo is the single source of truth for CI/CD automation workflows. Each workflow is a GitHub reusable workflow (`on: workflow_call`) that consumer repos invoke via `uses: JacobPEvans/ai-workflows/.github/workflows/<name>.yml@v0.1.0`.
+
+### Directory Structure
+
+```
+.github/
+  configs/
+    mcp-github.json.template       # MCP server config template (envsubst at runtime)
+  prompts/
+    *.md                            # Prompt files (one per workflow, 14 total)
+  scripts/
+    render-prompt.sh                # Shared: envsubst + GITHUB_OUTPUT for action-based workflows
+    ci-fix/                         # Extracted JS scripts per workflow
+    best-practices/
+    final-pr-review/
+    post-merge-tests/
+    post-merge-docs-review/
+  workflows/
+    *.yml                           # Pure YAML workflow definitions (no embedded content)
+```
+
+### Workflow Types
+
+**Action-based** (use `claude-code-action@v1`): ci-fix, claude-review, final-pr-review
+- Prompts rendered via `render-prompt.sh` + step output (envsubst)
+- No MCP config needed
+
+**Agent-based** (use `claude-code-base-action@v0.0.56` + MCP): all others
+- Static prompts: `prompt_file:` points directly to `.github/prompts/<name>.md`
+- Dynamic prompts (post-merge-tests, post-merge-docs-review): envsubst to temp file
+- MCP config: envsubst on `.github/configs/mcp-github.json.template`
+
+### Consumer Repo Caller Pattern
+
+```yaml
+name: Issue Sweeper
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+jobs:
+  sweep:
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-sweeper.yml@v0.1.0
+    secrets: inherit
+```
+
+### Cross-repo Checkout
+
+Workflows check out this repo at runtime for scripts, prompts, and configs:
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    repository: JacobPEvans/ai-workflows
+    sparse-checkout: |
+      .github/scripts
+      .github/prompts
+      .github/configs
+    path: .ai-workflows
+```
 
 ## Workflow Authoring Rules
 
@@ -10,19 +73,18 @@ Never mix programming languages inline within workflow files. Each file must con
 
 - `.yml` files contain only YAML (workflow configuration)
 - `.js` files contain only JavaScript
-- `.py` files contain only Python
-- `.sh` files contain only shell scripts
+- `.md` files contain prompts (with `${VAR}` placeholders for dynamic values)
+- `.json.template` files contain JSON config templates
 
-**Inline threshold**: Scripts of 5 lines or fewer may be embedded directly in YAML workflow steps. Scripts exceeding 5 lines must be extracted to a dedicated file under `.github/scripts/` and referenced with a short require/import.
+**Inline threshold**: Scripts of 5 lines or fewer may be embedded directly in YAML workflow steps. Scripts exceeding 5 lines must be extracted to a dedicated file under `.github/scripts/` and referenced via the cross-repo checkout pattern.
 
 **Pattern for extracted scripts** (`actions/github-script`):
 
 ```yaml
-# Workflow YAML — 2-line loader only
 - uses: actions/github-script@v7
   with:
     script: |
-      const run = require('./.github/scripts/<dir>/<name>.js');
+      const run = require('./.ai-workflows/.github/scripts/<dir>/<name>.js');
       await run({ github, context, core });
 ```
 
@@ -34,10 +96,6 @@ module.exports = async ({ github, context, core }) => {
 ```
 
 Pass GitHub Actions expression values (`${{ }}`) via `env:` on the step, then read them with `process.env` in the script. Never interpolate expressions inside `.js` files.
-
-### gh-aw Compiled Workflows
-
-Source files are `.md` (Markdown with YAML frontmatter). Compiled outputs are `.lock.yml`. Never edit `.lock.yml` directly unless patching values that `gh aw compile` cannot produce (document the reason in the source `.md`).
 
 ### Authentication
 
