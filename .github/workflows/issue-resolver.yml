@@ -1,0 +1,170 @@
+# Issue Auto-Resolver (Claude)
+#
+# Reusable workflow: called by consumer repos after issue-triage.yml.
+# Runs eligibility gates, then uses Claude to create a draft PR fixing the issue.
+#
+# Safety: Bot loop prevention, label gating, attempt limiting, draft-only PRs,
+# 15-minute timeout, explicit tool allowlist, and prompt injection boundary.
+
+name: Issue Resolver (Claude)
+
+on:
+  workflow_call:
+    inputs:
+      repo_context:
+        description: "Brief description of the repository for Claude's context"
+        type: string
+        required: true
+      extra_tools:
+        description: "Additional allowed tools beyond defaults (e.g., Bash(tofu:*))"
+        type: string
+        default: ""
+      model:
+        description: "Claude model to use"
+        type: string
+        default: "claude-sonnet-4-5-20250929"
+      excluded_labels:
+        description: "Comma-separated labels that block auto-resolution"
+        type: string
+        default: "type:security,type:feature,type:breaking,size:l,size:xl"
+      max_attempts:
+        description: "Max resolution attempts per issue"
+        type: number
+        default: 1
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: issue-resolver-${{ github.repository }}-${{ github.event.issue.number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  eligibility-check:
+    name: Check eligibility
+    if: github.event.sender.type != 'Bot'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: read
+      pull-requests: read
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      issue_number: ${{ steps.check.outputs.issue_number }}
+      issue_title: ${{ steps.check.outputs.issue_title }}
+      issue_body: ${{ steps.check.outputs.issue_body }}
+      issue_labels: ${{ steps.check.outputs.issue_labels }}
+      attempt: ${{ steps.check.outputs.attempt }}
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v4
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Check eligibility
+        id: check
+        env:
+          EXCLUDED_LABELS: ${{ inputs.excluded_labels }}
+          MAX_ATTEMPTS: ${{ inputs.max_attempts }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/issue-resolver/check-eligibility.js');
+            await run({ github, context, core });
+
+  post-start-comment:
+    name: Post start marker
+    needs: eligibility-check
+    if: needs.eligibility-check.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v4
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Post tracking comment
+        uses: actions/github-script@v7
+        env:
+          ISSUE_NUMBER: ${{ needs.eligibility-check.outputs.issue_number }}
+          ATTEMPT: ${{ needs.eligibility-check.outputs.attempt }}
+          MAX_ATTEMPTS: ${{ inputs.max_attempts }}
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/issue-resolver/post-start-comment.js');
+            await run({ github, context, core });
+
+  resolve:
+    name: Claude Resolve
+    needs: [eligibility-check, post-start-comment]
+    if: needs.eligibility-check.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+      - name: Checkout ai-workflows prompts
+        uses: actions/checkout@v4
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: |
+            .github/scripts
+            .github/prompts
+          path: .ai-workflows
+
+      - name: Render prompt
+        id: prompt
+        env:
+          REPO_CONTEXT: ${{ inputs.repo_context }}
+          ISSUE_NUMBER: ${{ needs.eligibility-check.outputs.issue_number }}
+          ISSUE_TITLE: ${{ needs.eligibility-check.outputs.issue_title }}
+          ISSUE_BODY: ${{ needs.eligibility-check.outputs.issue_body }}
+          ISSUE_LABELS: ${{ needs.eligibility-check.outputs.issue_labels }}
+        run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/issue-resolver.md REPO_CONTEXT ISSUE_NUMBER ISSUE_TITLE ISSUE_BODY ISSUE_LABELS
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          direct_prompt: ${{ steps.prompt.outputs.content }}
+          allowed_tools: "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git:*),Bash(gh pr create:*),Bash(gh issue comment:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
+          model: ${{ inputs.model }}
+
+  post-result:
+    name: Post result
+    needs: [eligibility-check, resolve]
+    if: always() && needs.eligibility-check.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: read
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v4
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Post result comment
+        uses: actions/github-script@v7
+        env:
+          ISSUE_NUMBER: ${{ needs.eligibility-check.outputs.issue_number }}
+          RESOLVE_RESULT: ${{ needs.resolve.result }}
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/issue-resolver/post-result-comment.js');
+            await run({ github, context, core });
