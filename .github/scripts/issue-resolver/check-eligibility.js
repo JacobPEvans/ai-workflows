@@ -14,7 +14,7 @@ module.exports = async ({ github, context, core }) => {
     issue_number: issueNumber,
   });
 
-  const labels = issue.labels.map(l => l.name);
+  const labels = issue.labels.map(l => l.name.toLowerCase());
 
   // Gate 2: Required labels present — triage must have run
   const hasTypeLabel = labels.some(l => l.startsWith('type:'));
@@ -28,7 +28,7 @@ module.exports = async ({ github, context, core }) => {
   // Gate 3: Exclusion labels — block list from input
   const excludedLabels = (process.env.EXCLUDED_LABELS || '')
     .split(',')
-    .map(l => l.trim())
+    .map(l => l.trim().toLowerCase())
     .filter(Boolean);
   const blockedLabel = labels.find(l => excludedLabels.includes(l));
   if (blockedLabel) {
@@ -74,13 +74,11 @@ module.exports = async ({ github, context, core }) => {
     state: 'open',
     per_page: 100,
   });
-  const closePatterns = [
-    new RegExp(`[Cc]loses\\s+#${issueNumber}\\b`),
-    new RegExp(`[Ff]ixes\\s+#${issueNumber}\\b`),
-  ];
-  const existingPR = openPRs.find(pr =>
-    closePatterns.some(p => p.test(pr.body || ''))
+  const closePattern = new RegExp(
+    `\\b(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\\s+#${issueNumber}\\b`,
+    'i'
   );
+  const existingPR = openPRs.find(pr => closePattern.test(pr.body || ''));
   if (existingPR) {
     core.setOutput('should_run', 'false');
     core.info(`PR #${existingPR.number} already references issue #${issueNumber}`);

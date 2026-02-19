@@ -14,13 +14,11 @@ module.exports = async ({ github, context, core }) => {
     state: 'open',
     per_page: 100,
   });
-  const closePatterns = [
-    new RegExp(`[Cc]loses\\s+#${issueNumber}\\b`),
-    new RegExp(`[Ff]ixes\\s+#${issueNumber}\\b`),
-  ];
-  const createdPR = openPRs.find(pr =>
-    closePatterns.some(p => p.test(pr.body || ''))
+  const closePattern = new RegExp(
+    `\\b(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\\s+#${issueNumber}\\b`,
+    'i'
   );
+  const createdPR = openPRs.find(pr => closePattern.test(pr.body || ''));
 
   if (createdPR) {
     // Claude already commented on the issue from the prompt instructions
