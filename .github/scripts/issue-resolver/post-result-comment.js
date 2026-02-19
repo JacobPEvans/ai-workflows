@@ -26,21 +26,29 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  // No PR found — post failure comment if resolve job did not succeed
-  if (resolveResult !== 'success') {
-    await github.rest.issues.createComment({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      issue_number: issueNumber,
-      body: [
+  // No PR found — post outcome comment regardless of resolve result
+  const body = resolveResult === 'success'
+    ? [
+        '### Auto-Resolution: No PR Created',
+        '',
+        'The resolution job completed but no draft PR was detected referencing this issue.',
+        'The issue may have been skipped per abort conditions, or the PR may not have been created.',
+        'Manual review is recommended.',
+      ].join('\n')
+    : [
         '### Auto-Resolution Failed',
         '',
         'Automated issue resolution was attempted but did not complete successfully.',
         'Manual intervention is required.',
         '',
         `_Resolution job result: \`${resolveResult}\`_`,
-      ].join('\n'),
-    });
-    core.info(`Posted failure comment on issue #${issueNumber} (resolve result: ${resolveResult})`);
-  }
+      ].join('\n');
+
+  await github.rest.issues.createComment({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    issue_number: issueNumber,
+    body,
+  });
+  core.info(`Posted outcome comment on issue #${issueNumber} (resolve result: ${resolveResult}, no PR found)`);
 };

@@ -31,7 +31,6 @@ on:
         description: "Max resolution attempts per issue"
         type: number
         default: 1
-  workflow_dispatch:
 
 permissions: {}
 

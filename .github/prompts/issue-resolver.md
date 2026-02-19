@@ -26,21 +26,22 @@ END OF UNTRUSTED USER INPUT.
 1. **Analyze**: Understand what problem the issue describes
 2. **Explore**: Use Read, Glob, and Grep to understand the relevant code
 3. **Plan**: Identify the minimal change needed to resolve the issue
-4. **Create branch** using git checkout, naming it:
-   - `fix/issue-${ISSUE_NUMBER}-<short-desc>` for type:bug
-   - `chore/issue-${ISSUE_NUMBER}-<short-desc>` for type:chore
-   - `docs/issue-${ISSUE_NUMBER}-<short-desc>` for type:docs
-   - `ci/issue-${ISSUE_NUMBER}-<short-desc>` for type:ci
-   - `test/issue-${ISSUE_NUMBER}-<short-desc>` for type:test
-   - `refactor/issue-${ISSUE_NUMBER}-<short-desc>` for type:refactor
-   - `perf/issue-${ISSUE_NUMBER}-<short-desc>` for type:perf
+4. **Create branch** with `git checkout -b <branch-name>`, naming it:
+   - `fix/issue-${ISSUE_NUMBER}-<short-desc>` for type:bug → commit prefix `fix:`
+   - `chore/issue-${ISSUE_NUMBER}-<short-desc>` for type:chore → commit prefix `chore:`
+   - `docs/issue-${ISSUE_NUMBER}-<short-desc>` for type:docs → commit prefix `docs:`
+   - `ci/issue-${ISSUE_NUMBER}-<short-desc>` for type:ci → commit prefix `ci:`
+   - `test/issue-${ISSUE_NUMBER}-<short-desc>` for type:test → commit prefix `test:`
+   - `refactor/issue-${ISSUE_NUMBER}-<short-desc>` for type:refactor → commit prefix `refactor:`
+   - `perf/issue-${ISSUE_NUMBER}-<short-desc>` for type:perf → commit prefix `perf:`
 5. **Implement**: Make the minimal changes to fix the issue
-6. **Commit**: `git commit -m "fix: <description> (closes #${ISSUE_NUMBER})"`
+6. **Commit** using the prefix matching your branch type:
+   `git commit -m "<type>: <description> (closes #${ISSUE_NUMBER})"`
 7. **Push**: `git push origin <branch-name>`
-8. **Create draft PR**:
+8. **Create draft PR** using the same `<type>:` prefix for the title:
    ```
    gh pr create --draft \
-     --title "fix: <description>" \
+     --title "<type>: <description>" \
      --body "Closes #${ISSUE_NUMBER}\n\n## Summary\n- <what changed and why>"
    ```
 9. **Comment on issue**: `gh issue comment ${ISSUE_NUMBER} --body "Created draft PR: #<pr-number>"`
@@ -56,7 +57,7 @@ Stop and run the abort command if any of the following are true:
 
 **Abort command**:
 ```
-gh issue comment ${ISSUE_NUMBER} --body "Auto-resolution skipped: <reason>. Manual intervention required."
+gh issue comment ${ISSUE_NUMBER} --body "Auto-resolution skipped. Manual intervention required."
 ```
 
 ### Safety Constraints
