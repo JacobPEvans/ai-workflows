@@ -42,6 +42,7 @@ on:
 # permissions: {} silently skips all jobs in cross-repo calls.
 permissions:
   contents: write
+  id-token: write
   issues: write
   pull-requests: write
 
@@ -66,7 +67,7 @@ jobs:
       max_attempts: ${{ inputs.max_attempts }}
     steps:
       - name: Checkout ai-workflows scripts
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: JacobPEvans/ai-workflows
           sparse-checkout: .github/scripts
@@ -79,7 +80,7 @@ jobs:
           MAX_ATTEMPTS: ${{ inputs.max_attempts }}
           ISSUE_NUMBER: ${{ inputs.issue_number }}
           ALLOWED_AUTHORS: ${{ inputs.allowed_authors }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const run = require('./.ai-workflows/.github/scripts/issue-resolver/check-eligibility.js');
@@ -92,18 +93,18 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
+      id-token: write
       issues: write
+      pull-requests: write
     timeout-minutes: 15
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
       - name: Checkout ai-workflows
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: JacobPEvans/ai-workflows
           sparse-checkout: |
@@ -127,6 +128,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          direct_prompt: ${{ steps.prompt.outputs.content }}
-          allowed_tools: "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git:*),Bash(gh pr create:*),Bash(gh issue comment:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
-          model: ${{ inputs.model }}
+          prompt: ${{ steps.prompt.outputs.content }}
+          claude_args: >-
+            --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git:*),Bash(gh pr create:*),Bash(gh issue comment:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
+            ${{ inputs.model != '' && format('--model {0}', inputs.model) || '' }}
