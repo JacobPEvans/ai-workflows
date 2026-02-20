@@ -32,10 +32,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Checkout ai-workflows
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: JacobPEvans/ai-workflows
           sparse-checkout: |
@@ -54,7 +54,7 @@ jobs:
         uses: anthropics/claude-code-base-action@v0.0.63
         with:
           anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          model: claude-sonnet-4-5-20250929
+          model: claude-sonnet-4-6
           prompt_file: .ai-workflows/.github/prompts/issue-sweeper.md
           mcp_config: /tmp/mcp-config/mcp-servers.json
           allowed_tools: Glob,Grep,LS,NotebookRead,Read,Task,mcp__github__list_issues,mcp__github__get_issue,mcp__github__list_pull_requests,mcp__github__search_issues,mcp__github__list_branches,mcp__github__list_commits,mcp__github__update_issue,mcp__github__add_issue_comment,mcp__github__list_issue_comments

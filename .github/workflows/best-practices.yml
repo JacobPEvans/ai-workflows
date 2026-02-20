@@ -31,7 +31,7 @@ jobs:
       should_run: ${{ steps.check.outputs.should_run }}
     steps:
       - name: Checkout ai-workflows scripts
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: JacobPEvans/ai-workflows
           sparse-checkout: .github/scripts
@@ -39,7 +39,7 @@ jobs:
 
       - name: Check for human commits since last recommendation
         id: check
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const run = require('./.ai-workflows/.github/scripts/best-practices/check-recent-activity.js');
@@ -57,10 +57,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Checkout ai-workflows
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: JacobPEvans/ai-workflows
           sparse-checkout: |
@@ -82,7 +82,7 @@ jobs:
           anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_env: |
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          model: claude-sonnet-4-5-20250929
+          model: claude-sonnet-4-6
           mcp_config: /tmp/mcp-config/mcp-servers.json
           prompt_file: .ai-workflows/.github/prompts/best-practices.md
           timeout_minutes: "5"

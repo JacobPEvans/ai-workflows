@@ -31,10 +31,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Checkout ai-workflows
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: JacobPEvans/ai-workflows
           sparse-checkout: |
@@ -53,7 +53,7 @@ jobs:
         uses: anthropics/claude-code-base-action@v0.0.63
         with:
           anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          model: claude-sonnet-4-5-20250929
+          model: claude-sonnet-4-6
           prompt_file: .ai-workflows/.github/prompts/code-simplifier.md
           mcp_config: /tmp/mcp-config/mcp-servers.json
           allowed_tools: Glob,Grep,LS,NotebookRead,Read,Bash(git:*),Edit,MultiEdit,Write,mcp__github__list_commits,mcp__github__list_pull_requests,mcp__github__get_pull_request,mcp__github__get_pull_request_files,mcp__github__get_file_contents,mcp__github__create_pull_request

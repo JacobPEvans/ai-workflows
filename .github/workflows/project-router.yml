@@ -26,10 +26,10 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Checkout ai-workflows
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: JacobPEvans/ai-workflows
           sparse-checkout: |
@@ -51,7 +51,7 @@ jobs:
           anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           claude_env: |
             GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          model: claude-sonnet-4-5-20250929
+          model: claude-sonnet-4-6
           mcp_config: /tmp/mcp-config/mcp-servers.json
           prompt_file: .ai-workflows/.github/prompts/project-router.md
           timeout_minutes: "5"
