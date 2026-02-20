@@ -27,12 +27,12 @@ on:
         default: "type:security,type:feature,type:breaking,size:l,size:xl"
       max_attempts:
         description: "Max resolution attempts per issue"
-        type: number
-        default: 1
+        type: string
+        default: "1"
       issue_number:
         description: "Issue number to resolve (overrides event payload; enables manual dispatch)"
-        type: number
-        default: 0
+        type: string
+        default: "0"
       allowed_authors:
         description: "Comma-separated author_association values allowed to trigger resolution"
         type: string
