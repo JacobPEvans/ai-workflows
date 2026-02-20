@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.4](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.3...v0.2.4) (2026-02-20)
+
+
+### Bug Fixes
+
+* remove inputs context from concurrency group in issue-resolver ([#30](https://github.com/JacobPEvans/ai-workflows/issues/30)) ([f954ad6](https://github.com/JacobPEvans/ai-workflows/commit/f954ad666ae69c79ce58f376392cee3b97a90924))
+
 ## [0.2.3](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.2...v0.2.3) (2026-02-20)
 
 
