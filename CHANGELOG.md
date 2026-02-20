@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.5](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.4...v0.2.5) (2026-02-20)
+
+
+### Bug Fixes
+
+* change issue-resolver inputs from type:number to type:string ([#32](https://github.com/JacobPEvans/ai-workflows/issues/32)) ([ec031ab](https://github.com/JacobPEvans/ai-workflows/commit/ec031aba31f54f89c522bc8b29734a00f3f57cc3))
+
 ## [0.2.4](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.3...v0.2.4) (2026-02-20)
 
 
