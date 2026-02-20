@@ -4,7 +4,11 @@ on:
   push:
     branches: [main]
 
-permissions: {}
+# Workflow-level permissions set the maximum for all jobs.
+# permissions: {} silently skips all jobs in cross-repo calls.
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   release-please:

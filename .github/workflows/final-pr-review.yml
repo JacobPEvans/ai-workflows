@@ -10,7 +10,13 @@ on:
   workflow_call:
   workflow_dispatch:
 
-permissions: {}
+# Workflow-level permissions set the maximum for all jobs.
+# permissions: {} silently skips all jobs in cross-repo calls.
+permissions:
+  checks: read
+  contents: read
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: final-pr-review-${{ github.repository }}-${{ github.event.pull_request.number || github.event.check_suite.pull_requests[0].number || github.run_id }}

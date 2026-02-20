@@ -25,7 +25,13 @@ on:
         default: ""
   workflow_dispatch:
 
-permissions: {}
+# Workflow-level permissions set the maximum for all jobs.
+# permissions: {} silently skips all jobs in cross-repo calls.
+permissions:
+  actions: read
+  contents: write
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: ci-fix-${{ github.repository }}-${{ github.event.workflow_run.head_branch || github.ref }}

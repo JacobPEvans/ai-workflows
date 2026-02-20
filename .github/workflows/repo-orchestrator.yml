@@ -5,7 +5,11 @@ on:
   workflow_call:
   workflow_dispatch:
 
-permissions: {}
+# Workflow-level permissions set the maximum for all jobs.
+# permissions: {} silently skips all jobs in cross-repo calls.
+permissions:
+  actions: write
+  contents: read
 
 concurrency:
   group: repo-orchestrator-${{ github.repository }}

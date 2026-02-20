@@ -4,7 +4,10 @@ on:
   release:
     types: [published]
 
-permissions: {}
+# Workflow-level permissions set the maximum for all jobs.
+# permissions: {} silently skips all jobs in cross-repo calls.
+permissions:
+  contents: write
 
 jobs:
   update-tags:
