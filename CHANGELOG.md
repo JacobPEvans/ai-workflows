@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.2](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.1...v0.2.2) (2026-02-20)
+
+
+### Bug Fixes
+
+* remove sender.type bot check from reusable workflow jobs ([#26](https://github.com/JacobPEvans/ai-workflows/issues/26)) ([603e293](https://github.com/JacobPEvans/ai-workflows/commit/603e2934e4b06284ca8904b13026ffc907ed3bb7))
+
 ## [0.2.1](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.0...v0.2.1) (2026-02-20)
 
 
