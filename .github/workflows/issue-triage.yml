@@ -5,7 +5,11 @@ on:
   workflow_call:
   workflow_dispatch:
 
-permissions: {}
+# Workflow-level permissions set the maximum for all jobs.
+# permissions: {} silently skips all jobs in cross-repo calls.
+permissions:
+  contents: read
+  issues: write
 
 concurrency:
   group: issue-triage-${{ github.repository }}
