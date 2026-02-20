@@ -46,7 +46,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: issue-resolver-${{ github.repository }}-${{ inputs.issue_number != 0 && inputs.issue_number || github.event.issue.number || github.run_id }}
+  group: issue-resolver-${{ github.repository }}-${{ github.event.issue.number || github.run_id }}
   cancel-in-progress: false
 
 jobs:
