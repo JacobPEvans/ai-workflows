@@ -2,9 +2,7 @@
 #
 # Reusable workflow: called by consumer repos after issue-triage.yml.
 # Runs eligibility gates, then uses Claude to create a draft PR fixing the issue.
-#
-# Safety: Bot loop prevention, label gating, attempt limiting, draft-only PRs,
-# 15-minute timeout, explicit tool allowlist, and prompt injection boundary.
+# Claude handles its own issue comments (start marker, PR link, abort notice).
 
 name: Issue Resolver (Claude)
 
@@ -22,7 +20,7 @@ on:
       model:
         description: "Claude model to use"
         type: string
-        default: "claude-sonnet-4-5-20250929"
+        default: "sonnet"
       excluded_labels:
         description: "Comma-separated labels that block auto-resolution"
         type: string
@@ -53,6 +51,7 @@ jobs:
       issue_body: ${{ steps.check.outputs.issue_body }}
       issue_labels: ${{ steps.check.outputs.issue_labels }}
       attempt: ${{ steps.check.outputs.attempt }}
+      max_attempts: ${{ inputs.max_attempts }}
     steps:
       - name: Checkout ai-workflows scripts
         uses: actions/checkout@v4
@@ -72,35 +71,9 @@ jobs:
             const run = require('./.ai-workflows/.github/scripts/issue-resolver/check-eligibility.js');
             await run({ github, context, core });
 
-  post-start-comment:
-    name: Post start marker
-    needs: eligibility-check
-    if: needs.eligibility-check.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-    steps:
-      - name: Checkout ai-workflows scripts
-        uses: actions/checkout@v4
-        with:
-          repository: JacobPEvans/ai-workflows
-          sparse-checkout: .github/scripts
-          path: .ai-workflows
-
-      - name: Post tracking comment
-        uses: actions/github-script@v7
-        env:
-          ISSUE_NUMBER: ${{ needs.eligibility-check.outputs.issue_number }}
-          ATTEMPT: ${{ needs.eligibility-check.outputs.attempt }}
-          MAX_ATTEMPTS: ${{ inputs.max_attempts }}
-        with:
-          script: |
-            const run = require('./.ai-workflows/.github/scripts/issue-resolver/post-start-comment.js');
-            await run({ github, context, core });
-
   resolve:
     name: Claude Resolve
-    needs: [eligibility-check, post-start-comment]
+    needs: eligibility-check
     if: needs.eligibility-check.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -115,7 +88,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 
-      - name: Checkout ai-workflows prompts
+      - name: Checkout ai-workflows
         uses: actions/checkout@v4
         with:
           repository: JacobPEvans/ai-workflows
@@ -132,7 +105,9 @@ jobs:
           ISSUE_TITLE: ${{ needs.eligibility-check.outputs.issue_title }}
           ISSUE_BODY: ${{ needs.eligibility-check.outputs.issue_body }}
           ISSUE_LABELS: ${{ needs.eligibility-check.outputs.issue_labels }}
-        run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/issue-resolver.md REPO_CONTEXT ISSUE_NUMBER ISSUE_TITLE ISSUE_BODY ISSUE_LABELS
+          ATTEMPT: ${{ needs.eligibility-check.outputs.attempt }}
+          MAX_ATTEMPTS: ${{ needs.eligibility-check.outputs.max_attempts }}
+        run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/issue-resolver.md REPO_CONTEXT ISSUE_NUMBER ISSUE_TITLE ISSUE_BODY ISSUE_LABELS ATTEMPT MAX_ATTEMPTS
 
       - name: Run Claude Code
         uses: anthropics/claude-code-action@v1
@@ -141,29 +116,3 @@ jobs:
           direct_prompt: ${{ steps.prompt.outputs.content }}
           allowed_tools: "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git:*),Bash(gh pr create:*),Bash(gh issue comment:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
           model: ${{ inputs.model }}
-
-  post-result:
-    name: Post result
-    needs: [eligibility-check, resolve]
-    if: always() && needs.eligibility-check.outputs.should_run == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: read
-    steps:
-      - name: Checkout ai-workflows scripts
-        uses: actions/checkout@v4
-        with:
-          repository: JacobPEvans/ai-workflows
-          sparse-checkout: .github/scripts
-          path: .ai-workflows
-
-      - name: Post result comment
-        uses: actions/github-script@v7
-        env:
-          ISSUE_NUMBER: ${{ needs.eligibility-check.outputs.issue_number }}
-          RESOLVE_RESULT: ${{ needs.resolve.result }}
-        with:
-          script: |
-            const run = require('./.ai-workflows/.github/scripts/issue-resolver/post-result-comment.js');
-            await run({ github, context, core });
