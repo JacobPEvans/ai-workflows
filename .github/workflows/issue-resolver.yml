@@ -52,7 +52,6 @@ concurrency:
 jobs:
   eligibility-check:
     name: Check eligibility
-    if: github.event.sender.type != 'Bot'
     runs-on: ubuntu-latest
     permissions:
       issues: read
