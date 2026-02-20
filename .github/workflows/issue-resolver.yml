@@ -29,11 +29,19 @@ on:
         description: "Max resolution attempts per issue"
         type: number
         default: 1
+      issue_number:
+        description: "Issue number to resolve (overrides event payload; enables manual dispatch)"
+        type: number
+        default: 0
+      allowed_authors:
+        description: "Comma-separated author_association values allowed to trigger resolution"
+        type: string
+        default: "OWNER,MEMBER,COLLABORATOR,CONTRIBUTOR"
 
 permissions: {}
 
 concurrency:
-  group: issue-resolver-${{ github.repository }}-${{ github.event.issue.number || github.run_id }}
+  group: issue-resolver-${{ github.repository }}-${{ inputs.issue_number != 0 && inputs.issue_number || github.event.issue.number || github.run_id }}
   cancel-in-progress: false
 
 jobs:
@@ -65,6 +73,8 @@ jobs:
         env:
           EXCLUDED_LABELS: ${{ inputs.excluded_labels }}
           MAX_ATTEMPTS: ${{ inputs.max_attempts }}
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          ALLOWED_AUTHORS: ${{ inputs.allowed_authors }}
         uses: actions/github-script@v7
         with:
           script: |
