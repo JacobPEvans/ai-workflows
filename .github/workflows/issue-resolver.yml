@@ -38,7 +38,12 @@ on:
         type: string
         default: "OWNER,MEMBER,COLLABORATOR,CONTRIBUTOR"
 
-permissions: {}
+# Workflow-level permissions set the maximum for all jobs.
+# permissions: {} silently skips all jobs in cross-repo calls.
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: issue-resolver-${{ github.repository }}-${{ inputs.issue_number != 0 && inputs.issue_number || github.event.issue.number || github.run_id }}
