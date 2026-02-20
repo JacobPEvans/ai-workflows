@@ -17,7 +17,14 @@ on:
         default: ""
   workflow_dispatch:
 
-permissions: {}
+# Workflow-level permissions set the maximum for all jobs.
+# permissions: {} silently skips all jobs in cross-repo calls.
+permissions:
+  actions: read
+  contents: read
+  id-token: write
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: claude-review-${{ github.repository }}-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
