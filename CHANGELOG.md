@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.8](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.7...v0.2.8) (2026-02-21)
+
+
+### Bug Fixes
+
+* switch to SSH commit signing for agent-mode workflows ([#38](https://github.com/JacobPEvans/ai-workflows/issues/38)) ([a6fdea8](https://github.com/JacobPEvans/ai-workflows/commit/a6fdea86cff7d3a2d430acba497148f83aa7850b))
+
 ## [0.2.7](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.6...v0.2.7) (2026-02-21)
 
 
