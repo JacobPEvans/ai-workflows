@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.7](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.6...v0.2.7) (2026-02-21)
+
+
+### Bug Fixes
+
+* enable commit signing and migrate triage to v1 action ([#36](https://github.com/JacobPEvans/ai-workflows/issues/36)) ([ec1df59](https://github.com/JacobPEvans/ai-workflows/commit/ec1df5992c1b5ac032e2fcd77e23d5b1e86c7083))
+
 ## [0.2.6](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.5...v0.2.6) (2026-02-20)
 
 
