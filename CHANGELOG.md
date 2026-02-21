@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.9](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.8...v0.2.9) (2026-02-21)
+
+
+### Bug Fixes
+
+* use Claude's SSH signing key and default bot identity ([#40](https://github.com/JacobPEvans/ai-workflows/issues/40)) ([7257494](https://github.com/JacobPEvans/ai-workflows/commit/725749420ae347643e17b20a139590f5df6be4db))
+
 ## [0.2.8](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.7...v0.2.8) (2026-02-21)
 
 
