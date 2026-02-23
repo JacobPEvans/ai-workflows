@@ -14,8 +14,10 @@ on:
 # Workflow-level permissions set the maximum for all jobs.
 # permissions: {} silently skips all jobs in cross-repo calls.
 permissions:
-  contents: read
+  contents: write
+  id-token: write
   issues: write
+  pull-requests: write
 
 concurrency:
   group: next-steps-${{ github.repository }}
@@ -26,8 +28,10 @@ jobs:
     if: github.event.sender.type != 'Bot'
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
+      id-token: write
       issues: write
+      pull-requests: write
     timeout-minutes: 5
     steps:
       - name: Checkout repository
@@ -39,23 +43,19 @@ jobs:
           repository: JacobPEvans/ai-workflows
           sparse-checkout: |
             .github/prompts
-            .github/configs
+            .github/scripts
           path: .ai-workflows
 
-      - name: Setup GitHub MCP
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir -p /tmp/mcp-config
-          envsubst < .ai-workflows/.github/configs/mcp-github.json.template > /tmp/mcp-config/mcp-servers.json
+      - name: Render prompt
+        id: prompt
+        run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/next-steps.md
 
       - name: Execute Claude Code
-        uses: anthropics/claude-code-base-action@v0.0.63
+        uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          model: claude-sonnet-4-6
-          prompt_file: .ai-workflows/.github/prompts/next-steps.md
-          mcp_config: /tmp/mcp-config/mcp-servers.json
-          allowed_tools: Glob,Grep,LS,NotebookRead,Read,Task,mcp__github__list_commits,mcp__github__list_pull_requests,mcp__github__get_pull_request,mcp__github__get_pull_request_files,mcp__github__list_issues,mcp__github__search_issues,mcp__github__create_issue,mcp__github__create_pull_request
-          claude_env: |
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          ssh_signing_key: ${{ secrets.GH_CLAUDE_SSH_SIGNING_KEY }}
+          prompt: ${{ steps.prompt.outputs.content }}
+          claude_args: >-
+            --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git:*),Bash(gh pr:*),Bash(gh issue:*),Bash(gh api:*),Bash(gh search:*)"
+            --model claude-sonnet-4-6

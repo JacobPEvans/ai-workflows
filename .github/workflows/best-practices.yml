@@ -13,6 +13,7 @@ on:
 # permissions: {} silently skips all jobs in cross-repo calls.
 permissions:
   contents: read
+  id-token: write
   issues: write
   pull-requests: read
 
@@ -52,6 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
       issues: write
       pull-requests: read
     timeout-minutes: 5
@@ -65,24 +67,18 @@ jobs:
           repository: JacobPEvans/ai-workflows
           sparse-checkout: |
             .github/prompts
-            .github/configs
+            .github/scripts
           path: .ai-workflows
 
-      - name: Setup GitHub MCP
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir -p /tmp/mcp-config
-          envsubst < .ai-workflows/.github/configs/mcp-github.json.template > /tmp/mcp-config/mcp-servers.json
+      - name: Render prompt
+        id: prompt
+        run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/best-practices.md
 
       - name: Run Claude
-        uses: anthropics/claude-code-base-action@v0.0.63
+        uses: anthropics/claude-code-action@v1
         with:
-          allowed_tools: "Glob,Grep,LS,NotebookRead,Read,Task,mcp__github__add_issue_comment,mcp__github__create_issue,mcp__github__get_file_contents,mcp__github__get_issue,mcp__github__list_commits,mcp__github__list_issues,mcp__github__search_code"
-          anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_env: |
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          model: claude-sonnet-4-6
-          mcp_config: /tmp/mcp-config/mcp-servers.json
-          prompt_file: .ai-workflows/.github/prompts/best-practices.md
-          timeout_minutes: "5"
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: ${{ steps.prompt.outputs.content }}
+          claude_args: >-
+            --allowedTools "Read,Glob,Grep,LS,Bash(gh issue:*),Bash(gh api:*),Bash(gh search:*)"
+            --model claude-sonnet-4-6

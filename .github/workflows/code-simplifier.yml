@@ -15,6 +15,7 @@ on:
 # permissions: {} silently skips all jobs in cross-repo calls.
 permissions:
   contents: write
+  id-token: write
   pull-requests: write
 
 concurrency:
@@ -27,6 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
       pull-requests: write
     timeout-minutes: 5
     steps:
@@ -39,23 +41,19 @@ jobs:
           repository: JacobPEvans/ai-workflows
           sparse-checkout: |
             .github/prompts
-            .github/configs
+            .github/scripts
           path: .ai-workflows
 
-      - name: Setup GitHub MCP
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          mkdir -p /tmp/mcp-config
-          envsubst < .ai-workflows/.github/configs/mcp-github.json.template > /tmp/mcp-config/mcp-servers.json
+      - name: Render prompt
+        id: prompt
+        run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/code-simplifier.md
 
       - name: Execute Claude Code
-        uses: anthropics/claude-code-base-action@v0.0.63
+        uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          model: claude-sonnet-4-6
-          prompt_file: .ai-workflows/.github/prompts/code-simplifier.md
-          mcp_config: /tmp/mcp-config/mcp-servers.json
-          allowed_tools: Glob,Grep,LS,NotebookRead,Read,Bash(git:*),Edit,MultiEdit,Write,mcp__github__list_commits,mcp__github__list_pull_requests,mcp__github__get_pull_request,mcp__github__get_pull_request_files,mcp__github__get_file_contents,mcp__github__create_pull_request
-          claude_env: |
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          ssh_signing_key: ${{ secrets.GH_CLAUDE_SSH_SIGNING_KEY }}
+          prompt: ${{ steps.prompt.outputs.content }}
+          claude_args: >-
+            --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git:*),Bash(gh pr:*),Bash(gh api:*)"
+            --model claude-sonnet-4-6
