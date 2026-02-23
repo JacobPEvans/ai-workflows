@@ -76,8 +76,10 @@ on:
   pull_request:
     types: [opened, synchronize, ready_for_review]
 permissions:
+  actions: read
   contents: read
   id-token: write
+  issues: write
   pull-requests: write
 ```
 
@@ -89,8 +91,10 @@ on:
   pull_request_review:
     types: [submitted]
 permissions:
+  checks: read
   contents: read
   id-token: write
+  issues: write
   pull-requests: write
 ```
 

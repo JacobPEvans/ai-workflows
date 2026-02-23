@@ -94,6 +94,7 @@ See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) for the full list of work
     final-pr-review/
     post-merge-tests/
     post-merge-docs-review/
+    issue-resolver/     # Eligibility checks for the issue-resolver workflow
   workflows/            # Reusable workflow YAML definitions
 docs/                   # Documentation and verification runbook
 ```
