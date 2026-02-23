@@ -9,17 +9,20 @@ If you discover a security vulnerability in this project, please report it respo
 
 ## Scope
 
-This project contains AI workflow definitions (Markdown files) that compile to
-GitHub Actions workflows. Security concerns include:
+This project contains GitHub Actions reusable workflows that invoke Claude via `claude-code-action@v1`.
+Security concerns include:
 
-- **Prompt injection**: Workflow prompts that could be manipulated via issue or PR content
-- **Permission escalation**: Workflows requesting broader permissions than needed
-- **Secret exposure**: Accidental inclusion of tokens or credentials
-- **Safe output bypass**: Workflows that circumvent gh-aw safety controls
+- **Prompt injection**: Issue/PR content passed to Claude via prompt templates — an attacker could craft issue titles or PR descriptions to manipulate Claude's behavior
+- **Permission escalation**: Workflows requesting broader permissions than needed for their task
+- **Secret exposure**: Accidental leakage of `CLAUDE_CODE_OAUTH_TOKEN` or `GH_CLAUDE_SSH_SIGNING_KEY`
+- **Fork safety**: The CI Fix workflow has an explicit fork guard to prevent untrusted code checkout in the privileged `workflow_run` context
+- **OIDC token misuse**: Workflows use `id-token: write` for OIDC token exchange — this should not be granted beyond what's needed
 
 ## Security Practices
 
-- All workflows use read-only permissions by default
-- Write operations require explicit `safe-outputs` configuration
+- All workflows use minimal permissions — each job declares only what it needs
 - Secrets are never committed; workflows reference `${{ secrets.* }}`
-- Issue/PR content is sanitized through gh-aw's built-in input validation
+- Commit signing uses SSH key pairs (`GH_CLAUDE_SSH_SIGNING_KEY`), not long-lived PATs
+- OIDC token exchange (`id-token: write`) replaces long-lived API key auth
+- Fork guard in ci-fix.yml prevents processing untrusted fork branches in the `workflow_run` context
+- Bot-triggered runs are filtered via `if: github.event.sender.type != 'Bot'` to prevent feedback loops
