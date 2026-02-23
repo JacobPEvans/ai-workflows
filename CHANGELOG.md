@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.9...v0.3.0) (2026-02-23)
+
+
+### Features
+
+* migrate all workflows to claude-code-action@v1 with OIDC auth ([32160f9](https://github.com/JacobPEvans/ai-workflows/commit/32160f97fda88ef1465fada6aa2ae70030013ab9))
+
 ## [0.2.9](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.8...v0.2.9) (2026-02-21)
 
 
