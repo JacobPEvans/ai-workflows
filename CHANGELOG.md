@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.1](https://github.com/JacobPEvans/ai-workflows/compare/v0.3.0...v0.3.1) (2026-02-23)
+
+
+### Bug Fixes
+
+* **triage:** apply size:* and priority:* labels per label policy ([da8fc05](https://github.com/JacobPEvans/ai-workflows/commit/da8fc0523a21e9335c0f3b4933cce93c267edb35))
+
 ## [0.3.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.2.9...v0.3.0) (2026-02-23)
 
 
