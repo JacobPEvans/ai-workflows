@@ -5,44 +5,141 @@ Thank you for your interest in contributing to ai-workflows.
 ## Getting Started
 
 1. Fork this repository
-2. Install the gh-aw CLI extension:
+2. Create a feature branch: `git checkout -b feat/your-feature`
+3. Make your changes following the guidelines below
+4. Commit and push
+5. Open a pull request
 
-   ```bash
-   gh extension install github/gh-aw
-   ```
+## Adding a New Reusable Workflow
 
-3. Create a feature branch: `git checkout -b feat/your-feature`
-4. Make your changes
-5. Compile workflows: `gh aw compile`
-6. Commit and push
-7. Open a pull request
+1. Create `.github/workflows/<name>.yml` — the reusable workflow
+2. Create `.github/prompts/<name>.md` — the Claude prompt
+3. If the workflow needs scripts >5 lines, extract to `.github/scripts/<name>/<script>.js`
 
-## Workflow Guidelines
+### Workflow Template
 
-- All workflows must follow [gh-aw patterns](https://github.github.io/gh-aw/)
-- Use `copilot` as the target engine. Note: the technical preview CLI currently only compiles `claude` and `codex` — workflows will switch to `copilot` once CLI support lands
-- Configure `safe-outputs` for any write operations
-- Import shared components from `shared/` instead of duplicating configuration
-- Keep prompts focused and under 500 words
+```yaml
+name: "My Workflow"
 
-## Agent Guidelines
+on:
+  workflow_call:
+  workflow_dispatch:
 
-- Place agent definitions in `.github/agents/`
-- Include frontmatter with name, description, model, version, and metadata
-- Document the agent's capabilities and rules clearly
+permissions:
+  contents: read
+  id-token: write
+  issues: write    # add only what's needed
 
-## Shared Components
+concurrency:
+  group: my-workflow-${{ github.repository }}
 
-- Tool configs go in `shared/tools/`
-- Policy/config files go in `shared/config/`
-- Prompt rules go in `shared/prompts/`
-- Always include frontmatter with name and description
+jobs:
+  run:
+    if: github.event.sender.type != 'Bot'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      issues: write
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Checkout ai-workflows
+        uses: actions/checkout@v6
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: |
+            .github/prompts
+            .github/scripts
+          path: .ai-workflows
+
+      - name: Render prompt
+        id: prompt
+        run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/my-workflow.md
+
+      - name: Run Claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: ${{ steps.prompt.outputs.content }}
+          claude_args: >-
+            --allowedTools "Read,Glob,Grep,LS,Bash(gh issue:*)"
+            --model claude-sonnet-4-6
+```
+
+For workflows that create commits or PRs, add SSH signing:
+
+```yaml
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          ssh_signing_key: ${{ secrets.GH_CLAUDE_SSH_SIGNING_KEY }}
+```
+
+### Dynamic Prompts
+
+For prompts with runtime values, use `render-prompt.sh` with named env vars:
+
+```yaml
+- name: Render prompt
+  id: prompt
+  env:
+    MERGE_SHA: ${{ github.sha }}
+    REPO_FULL_NAME: ${{ github.repository }}
+  run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/my-workflow.md MERGE_SHA REPO_FULL_NAME
+```
+
+In the prompt file, use `${MERGE_SHA}` and `${REPO_FULL_NAME}` as placeholders.
+
+## File Format Separation
+
+Never mix programming languages within a file. Each file must contain a single language:
+
+- `.yml` files — only YAML (workflow configuration)
+- `.md` files — prompts only (with `${VAR}` placeholders for dynamic values)
+- `.js` files — only JavaScript (extracted scripts)
+- `.sh` files — only shell scripts
+
+**Inline threshold**: Shell commands of 5 lines or fewer may be embedded directly in YAML `run:` steps. Anything longer must be extracted to a `.sh` or `.js` file.
+
+**Pattern for extracted JS scripts** (`actions/github-script`):
+
+```yaml
+- uses: actions/github-script@v8
+  with:
+    script: |
+      const run = require('./.ai-workflows/.github/scripts/<dir>/<name>.js');
+      await run({ github, context, core });
+```
+
+```javascript
+// .github/scripts/<dir>/<name>.js
+module.exports = async ({ github, context, core }) => {
+  // All logic here — one file, one language
+};
+```
+
+Pass `${{ }}` expression values via `env:` on the step, then read via `process.env`. Never interpolate GitHub expressions inside `.js` files.
+
+## Authentication
+
+- `CLAUDE_CODE_OAUTH_TOKEN` — used by all Claude Code workflows, no aliases
+- `GH_CLAUDE_SSH_SIGNING_KEY` — required for workflows that create commits (code-simplifier, next-steps, post-merge-*, ci-fix, issue-resolver)
+
+## Permissions
+
+Workflow-level `permissions:` must be the union of all job-level permissions. Job-level permissions cannot escalate beyond the workflow-level maximum. Consumer repo callers must also declare sufficient permissions.
+
+## Version Tags
+
+Use version tags (`@v1`, `@v6`, `@v8`) for trusted first-party GitHub actions (`actions/*`, `anthropics/*`). SHA pinning is not required for these.
 
 ## Commit Messages
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-- `feat:` new workflow, agent, or component
+- `feat:` new workflow, script, or prompt
 - `fix:` bug fix in existing workflow
 - `docs:` documentation changes
 - `refactor:` restructuring without behavior change

@@ -10,12 +10,10 @@ This repo is the single source of truth for CI/CD automation workflows. Each wor
 
 ```
 .github/
-  configs/
-    mcp-github.json.template       # MCP server config template (envsubst at runtime)
   prompts/
-    *.md                            # Prompt files (one per workflow, 14 total)
+    *.md                            # Prompt files (one per workflow)
   scripts/
-    render-prompt.sh                # Shared: envsubst + GITHUB_OUTPUT for action-based workflows
+    render-prompt.sh                # Shared: envsubst + GITHUB_OUTPUT
     ci-fix/                         # Extracted JS scripts per workflow
     best-practices/
     final-pr-review/
@@ -27,14 +25,12 @@ This repo is the single source of truth for CI/CD automation workflows. Each wor
 
 ### Workflow Types
 
-**Action-based** (use `claude-code-action@v1`): ci-fix, claude-review, final-pr-review
-- Prompts rendered via `render-prompt.sh` + step output (envsubst)
-- No MCP config needed
+**All workflows use `claude-code-action@v1`** with OIDC auth (`id-token: write`).
 
-**Agent-based** (use `claude-code-base-action@v0.0.56` + MCP): all others
-- Static prompts: `prompt_file:` points directly to `.github/prompts/<name>.md`
-- Dynamic prompts (post-merge-tests, post-merge-docs-review): envsubst to temp file
-- MCP config: envsubst on `.github/configs/mcp-github.json.template`
+- Prompts rendered via `render-prompt.sh` + step output (envsubst)
+- Static prompts: most workflows
+- Dynamic prompts (ci-fix, post-merge-tests, post-merge-docs-review): `render-prompt.sh` with named env vars
+- Write workflows (code-simplifier, next-steps, post-merge-*, ci-fix, issue-resolver): add `ssh_signing_key: ${{ secrets.GH_CLAUDE_SSH_SIGNING_KEY }}`
 
 ### Consumer Repo Caller Pattern
 
@@ -44,24 +40,28 @@ on:
   schedule:
     - cron: "0 6 * * 1"
   workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+  pull-requests: read
 jobs:
   sweep:
-    uses: JacobPEvans/ai-workflows/.github/workflows/issue-sweeper.yml@v0.1.0
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-sweeper.yml@v0.3.0
     secrets: inherit
 ```
 
 ### Cross-repo Checkout
 
-Workflows check out this repo at runtime for scripts, prompts, and configs:
+Workflows check out this repo at runtime for scripts and prompts:
 
 ```yaml
-- uses: actions/checkout@v4
+- uses: actions/checkout@v6
   with:
     repository: JacobPEvans/ai-workflows
     sparse-checkout: |
       .github/scripts
       .github/prompts
-      .github/configs
     path: .ai-workflows
 ```
 
