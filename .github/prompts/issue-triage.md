@@ -24,17 +24,24 @@ a structured triage response.
    - Speed/efficiency: `type:perf`
    - Compatibility changes: `type:breaking`
 
-4. **Respect form selections**: If the issue was created from a form template and already
-   has priority/size selections in the body, do not override them. The auto-label workflow
-   handles those.
+4. **Categorize by size**: Estimate effort and apply a `size:*` label if one is not already
+   present (check existing labels before adding):
+   - `size:xs` — single file change, trivial edit (< 30 min)
+   - `size:s` — a few files, straightforward (30 min – 2 hr)
+   - `size:m` — multiple files, some complexity (2–8 hr)
+   - `size:l` — significant change across many files (1–3 days)
+   - `size:xl` — large feature or architectural change (> 3 days)
 
-5. **Comment with triage summary**: Post a brief comment with:
+5. **Respect form selections**: If the issue was created from a form template and already
+   has type/size labels in the body, do not override them.
+
+6. **Comment with triage summary**: Post a brief comment with:
    - Applied labels and reasoning
    - Duplicate reference if found
-   - Suggested priority/size if not set by form
 
 ## Rules
 
 - Apply exactly one `type:*` label per issue.
+- Apply exactly one `size:*` label per issue (unless one already exists).
 - Never remove existing labels.
 - Keep triage comments concise (under 200 words).
