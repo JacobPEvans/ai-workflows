@@ -8,7 +8,7 @@
 #   e2e-test.sh issue-lifecycle <repo>   Create test issue and verify triage + resolver chain
 #   e2e-test.sh ci-fix <repo>            Create PR with lint error and verify ci-fix runs
 #   e2e-test.sh check-scheduled          Check most recent scheduled workflow runs across all repos
-#   e2e-test.sh check-all <repo>         Run issue-lifecycle + ci-fix + check-scheduled
+#   e2e-test.sh check-all <repo>         Run issue-lifecycle + check-scheduled
 #   e2e-test.sh cleanup <repo>           Close test issues/PRs created by verification
 #
 # Environment variables:
@@ -44,14 +44,18 @@ init_state() {
 # Save artifact ID to state
 save_state() {
   local type=$1 repo=$2 number=$3
-  local current
+  local current tmp_file
   current=$(cat "$STATE_FILE")
-  echo "$current" | python3 -c "
+  tmp_file=$(mktemp)
+  echo "$current" | python3 -c '
 import json, sys
 data = json.load(sys.stdin)
-data['${type}']['${repo}'] = ${number}
+t, r, n = sys.argv[1], sys.argv[2], int(sys.argv[3])
+if t not in data:
+    data[t] = {}
+data[t][r] = n
 print(json.dumps(data))
-" > "$STATE_FILE"
+' "$type" "$repo" "$number" > "$tmp_file" && mv "$tmp_file" "$STATE_FILE"
 }
 
 # Poll for workflow run completion
@@ -96,11 +100,9 @@ cmd_issue_lifecycle() {
     --repo "$repo" \
     --title "chore: add comment to main playbook" \
     --body "Add a brief descriptive comment to the top of site.yml" \
-    --label "" 2>/dev/null || true)
+    --label "" || true)
   local issue_num
-  issue_num=$(gh issue list --repo "$repo" \
-    --search "add comment to main playbook" \
-    --state open --json number -q '.[0].number' 2>/dev/null || echo "")
+  issue_num=$(echo "$issue_url" | grep -oE '[0-9]+$')
   if [[ -z "$issue_num" ]]; then
     fail "Could not create or find test issue"
     return 1
@@ -137,7 +139,7 @@ cmd_issue_lifecycle() {
 cmd_pr_review() {
   local repo=${1:-JacobPEvans/ansible-proxmox-apps}
   local pr_num
-  pr_num=$(python3 -c "import json; d=json.load(open('$STATE_FILE')); print(d['prs'].get('$repo',''))" 2>/dev/null || echo "")
+  pr_num=$(jq -r --arg repo "$repo" '.prs[$repo] // ""' "$STATE_FILE" 2>/dev/null || echo "")
   if [[ -z "$pr_num" ]]; then
     pr_num=$(gh pr list --repo "$repo" --state open --json number -q '.[0].number' 2>/dev/null || echo "")
   fi
@@ -154,7 +156,7 @@ cmd_pr_review() {
 cmd_ci_fix() {
   local repo=${1:-JacobPEvans/terraform-proxmox}
   local branch="test/ci-fix-verification-$$"
-  local tmpdir="/tmp/ci-fix-test-$$"
+  local tmpdir; tmpdir=$(mktemp -d)
   init_state
 
   info "Cloning $repo..."
@@ -234,8 +236,8 @@ cmd_cleanup() {
     return 0
   fi
   local issue_num pr_num
-  issue_num=$(python3 -c "import json; d=json.load(open('$STATE_FILE')); print(d['issues'].get('$repo',''))" 2>/dev/null || echo "")
-  pr_num=$(python3 -c "import json; d=json.load(open('$STATE_FILE')); print(d['prs'].get('$repo',''))" 2>/dev/null || echo "")
+  issue_num=$(jq -r --arg repo "$repo" '.issues[$repo] // ""' "$STATE_FILE" 2>/dev/null || echo "")
+  pr_num=$(jq -r --arg repo "$repo" '.prs[$repo] // ""' "$STATE_FILE" 2>/dev/null || echo "")
 
   if [[ -n "$pr_num" ]]; then
     info "Closing PR #$pr_num in $repo..."

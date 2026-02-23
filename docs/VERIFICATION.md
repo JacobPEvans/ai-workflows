@@ -28,7 +28,8 @@ Tests: **issue-triage**, **issue-resolver** (via issue-auto-resolve.yml), **clau
 gh issue create \
   --repo JacobPEvans/ansible-proxmox-apps \
   --title "chore: add comment to main playbook" \
-  --body "Add a brief descriptive comment to the top of site.yml"
+  --body "Add a brief descriptive comment to the top of site.yml" \
+  --label ""
 ```
 
 **Expected chain**:
@@ -182,3 +183,24 @@ done
 | E: Scheduled (next run) | best-practices, code-simplifier, next-steps, issue-sweeper, issue-hygiene | conclusion != failure |
 
 **Total**: 12 of 15 workflows verified via real triggers. (claude-review and final-pr-review are indirectly covered via Tests A and B.)
+
+---
+
+## Test F: On-Demand Workflows (Manual Dispatch)
+
+Tests: **label-sync**, **project-router**, **repo-orchestrator**
+
+These workflows have no event trigger — they are `workflow_call` / `workflow_dispatch` only. Verify via manual dispatch:
+
+```bash
+for REPO in JacobPEvans/nix-config JacobPEvans/terraform-proxmox JacobPEvans/ansible-proxmox-apps; do
+  echo "=== $REPO ==="
+  gh workflow run "Label Sync" --repo "$REPO"
+  sleep 5
+  gh run list --repo "$REPO" --workflow "Label Sync" --limit 1 --json status,conclusion,url
+done
+```
+
+**Pass condition**: Workflows triggered successfully (not stuck at startup_failure with 0 jobs).
+
+Note: `project-router` and `repo-orchestrator` require real issue/PR events or project board configuration to do meaningful work — verify they start without "Invalid API key" failures.
