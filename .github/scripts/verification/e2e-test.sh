@@ -12,7 +12,7 @@
 #   e2e-test.sh cleanup <repo>           Close test issues/PRs created by verification
 #
 # Environment variables:
-#   REPOS        Space-separated list (default: JacobPEvans/nix-config JacobPEvans/terraform-proxmox JacobPEvans/ansible-proxmox-apps)
+#   REPOS        Space-separated list (default: JacobPEvans/nix JacobPEvans/terraform-proxmox JacobPEvans/ansible-proxmox-apps)
 #   POLL_INTERVAL  Seconds between status checks (default: 30)
 #   MAX_WAIT     Max seconds to wait for workflow completion (default: 600)
 #
@@ -20,7 +20,7 @@
 
 set -euo pipefail
 
-REPOS="${REPOS:-JacobPEvans/nix-config JacobPEvans/terraform-proxmox JacobPEvans/ansible-proxmox-apps}"
+REPOS="${REPOS:-JacobPEvans/nix JacobPEvans/terraform-proxmox JacobPEvans/ansible-proxmox-apps}"
 POLL_INTERVAL="${POLL_INTERVAL:-30}"
 MAX_WAIT="${MAX_WAIT:-600}"
 STATE_FILE="/tmp/e2e-test-state.json"
