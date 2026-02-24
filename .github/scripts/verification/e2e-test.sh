@@ -59,18 +59,26 @@ print(json.dumps(data))
 }
 
 # Poll for workflow run completion
+# Usage: wait_for_run <repo> <workflow-name> [min_created_at]
+# min_created_at: ISO 8601 timestamp — only consider runs created at or after this time
 wait_for_run() {
-  local repo=$1 workflow=$2
+  local repo=$1 workflow=$2 min_created_at=${3:-""}
   local elapsed=0
   info "Waiting for '$workflow' in $repo (max ${MAX_WAIT}s)..."
   while [[ $elapsed -lt $MAX_WAIT ]]; do
     local result
-    result=$(gh run list --repo "$repo" --workflow "$workflow" \
-      --limit 1 --json status,conclusion,url --jq '.[0]' 2>/dev/null || echo '{}')
+    if [[ -n "$min_created_at" ]]; then
+      result=$(gh run list --repo "$repo" --workflow "$workflow" \
+        --limit 20 --json status,conclusion,url,createdAt 2>/dev/null | \
+        jq --arg min "$min_created_at" 'map(select(.createdAt >= $min)) | first // {}' 2>/dev/null || echo '{}')
+    else
+      result=$(gh run list --repo "$repo" --workflow "$workflow" \
+        --limit 1 --json status,conclusion,url --jq '.[0] // {}' 2>/dev/null || echo '{}')
+    fi
     local status conclusion url
-    status=$(echo "$result" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('status',''))" 2>/dev/null || echo "")
-    conclusion=$(echo "$result" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('conclusion',''))" 2>/dev/null || echo "")
-    url=$(echo "$result" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('url',''))" 2>/dev/null || echo "")
+    status=$(echo "$result" | jq -r '.status // ""' 2>/dev/null || echo "")
+    conclusion=$(echo "$result" | jq -r '.conclusion // ""' 2>/dev/null || echo "")
+    url=$(echo "$result" | jq -r '.url // ""' 2>/dev/null || echo "")
 
     if [[ "$status" == "completed" ]]; then
       if [[ "$conclusion" == "success" || "$conclusion" == "skipped" ]]; then
@@ -94,44 +102,56 @@ wait_for_run() {
 cmd_issue_lifecycle() {
   local repo=${1:-JacobPEvans/ansible-proxmox-apps}
   init_state
+
+  # Record start time before creating the issue to filter out pre-existing runs
+  local start_time
+  start_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+  # Use a unique title (timestamp suffix) to prevent triage from flagging as duplicate
+  local ts
+  ts=$(date +%s)
+  local issue_title="chore: add descriptive comment to site.yml (${ts})"
+
   info "Creating test issue in $repo..."
   local issue_url
   issue_url=$(gh issue create \
     --repo "$repo" \
-    --title "chore: add comment to main playbook" \
-    --body "Add a brief descriptive comment to the top of site.yml" \
-    --label "" || true)
+    --title "$issue_title" \
+    --body "The site.yml file lacks a header comment explaining its purpose and scope. Add a brief descriptive comment at the top of site.yml." \
+    2>/dev/null || true)
   local issue_num
   issue_num=$(echo "$issue_url" | grep -oE '[0-9]+$')
   if [[ -z "$issue_num" ]]; then
-    fail "Could not create or find test issue"
+    fail "Could not create test issue"
     return 1
   fi
   save_state "issues" "$repo" "$issue_num"
-  info "Created issue #$issue_num"
+  info "Created issue #$issue_num: $issue_title"
 
-  wait_for_run "$repo" "Issue Triage"
-  wait_for_run "$repo" "Issue Auto-Resolve"
+  wait_for_run "$repo" "Issue Triage" "$start_time"
+  wait_for_run "$repo" "Issue Auto-Resolve" "$start_time"
 
   info "Checking for labels on issue #$issue_num..."
   local labels
   labels=$(gh issue view "$issue_num" --repo "$repo" --json labels -q '.labels[].name' 2>/dev/null || echo "")
   if [[ -n "$labels" ]]; then
-    pass "Issue has labels: $labels"
+    pass "Issue has labels: $(echo "$labels" | tr '\n' ' ')"
   else
     fail "Issue has no labels after triage"
   fi
 
-  info "Checking for draft PR..."
+  info "Checking for draft PR linked to issue #$issue_num..."
   local pr_num
   pr_num=$(gh pr list --repo "$repo" --state open --json number,isDraft \
     -q '.[] | select(.isDraft==true) | .number' 2>/dev/null | head -1 || echo "")
   if [[ -n "$pr_num" ]]; then
     save_state "prs" "$repo" "$pr_num"
     pass "Draft PR #$pr_num created by issue-resolver"
-    wait_for_run "$repo" "Claude Code Review"
+    wait_for_run "$repo" "Claude Code Review" "$start_time"
   else
-    info "No draft PR found (issue-resolver may have skipped — check eligibility)"
+    fail "No draft PR found — issue-resolver skipped or failed"
+    info "Labels on issue #$issue_num: $labels"
+    return 1
   fi
 }
 
