@@ -107,17 +107,17 @@ cmd_issue_lifecycle() {
   local start_time
   start_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-  # Use a unique title (timestamp suffix) to prevent triage from flagging as duplicate
+  # Use a unique title to prevent triage from flagging as duplicate across test runs
   local ts
   ts=$(date +%s)
-  local issue_title="chore: add descriptive comment to site.yml (${ts})"
+  local issue_title="chore: add README.md to technitium_dns role (${ts})"
 
   info "Creating test issue in $repo..."
   local issue_url
   issue_url=$(gh issue create \
     --repo "$repo" \
     --title "$issue_title" \
-    --body "The site.yml file lacks a header comment explaining its purpose and scope. Add a brief descriptive comment at the top of site.yml." \
+    --body "The technitium_dns role is missing a README.md file. Add a standard role README documenting variables, requirements, and example usage." \
     2>/dev/null || true)
   local issue_num
   issue_num=$(echo "$issue_url" | grep -oE '[0-9]+$')
