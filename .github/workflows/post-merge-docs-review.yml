@@ -10,6 +10,11 @@ name: Post-Merge Docs Review
 
 on:
   workflow_call:
+    inputs:
+      commit_sha:
+        description: 'Override commit SHA for workflow_dispatch callers'
+        required: false
+        type: string
   workflow_dispatch:
 
 # Workflow-level permissions set the maximum for all jobs.
@@ -42,6 +47,8 @@ jobs:
       - name: Check if changes are doc-relevant
         id: check
         uses: actions/github-script@v8
+        env:
+          OVERRIDE_SHA: ${{ inputs.commit_sha || '' }}
         with:
           script: |
             const run = require('./.ai-workflows/.github/scripts/post-merge-docs-review/check-docs-relevance.js');
@@ -73,7 +80,7 @@ jobs:
       - name: Render prompt
         id: prompt
         env:
-          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_SHA: ${{ inputs.commit_sha || github.sha }}
           REPO_NAME: ${{ github.repository }}
         run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/post-merge-docs-review.md COMMIT_SHA REPO_NAME
 

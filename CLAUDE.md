@@ -32,6 +32,10 @@ This repo is the single source of truth for CI/CD automation workflows. Each wor
 - Dynamic prompts (ci-fix, post-merge-tests, post-merge-docs-review): `render-prompt.sh` with named env vars
 - Write workflows (code-simplifier, next-steps, post-merge-*, ci-fix, issue-resolver): add `ssh_signing_key: ${{ secrets.GH_CLAUDE_SSH_SIGNING_KEY }}`
 
+**Supported event types**: `issues`, `issue_comment`, `pull_request`, `pull_request_review`, `pull_request_review_comment`, `workflow_dispatch`, `repository_dispatch`, `schedule`, `workflow_run`. `push` is NOT supported — post-merge workflows use the dispatch pattern (see `docs/PATTERNS.md`).
+
+**Bot guard**: Any workflow triggered by `issues:` events must include `if: github.event.sender.type != 'Bot'` on the job — both in the reusable workflow and in the consumer caller — to prevent bot-created issues from triggering Claude runs.
+
 ### Consumer Repo Caller Pattern
 
 ```yaml
@@ -47,7 +51,7 @@ permissions:
   pull-requests: read
 jobs:
   sweep:
-    uses: JacobPEvans/ai-workflows/.github/workflows/issue-sweeper.yml@v0.3.0
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-sweeper.yml@v0.3.3
     secrets: inherit
 ```
 

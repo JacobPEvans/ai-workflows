@@ -125,3 +125,86 @@ module.exports = async ({ github, context, core }) => {
 ```
 
 Pass dynamic values (issue numbers, SHAs) via `env:` on the step, read via `process.env` in the script.
+
+---
+
+## Post-Merge Dispatch Pattern
+
+Used by consumer callers for post-merge workflows. `push` events are NOT supported by `claude-code-action@v1`, so callers re-dispatch as `workflow_dispatch` and pass the commit SHA as an input.
+
+**Workflows (consumers)**: post-merge-docs-review, post-merge-tests
+
+**Why**: `push` events cause "Unsupported event type: push" failures in the Claude step. The reusable workflow runs fine under `workflow_dispatch`.
+
+**Reusable workflow** accepts a `commit_sha` input to override `github.sha`:
+```yaml
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        description: 'Override commit SHA for workflow_dispatch callers'
+        required: false
+        type: string
+```
+
+**Consumer caller** (two-job pattern — dispatch on push, call reusable on workflow_dispatch):
+```yaml
+name: Post-Merge Test Review
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        description: 'Commit SHA to review'
+        required: false
+        type: string
+permissions:
+  actions: write
+  contents: write
+  id-token: write
+  pull-requests: write
+jobs:
+  dispatch:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-trigger as workflow_dispatch
+        run: |
+          gh workflow run "${{ github.workflow }}" \
+            --repo "${{ github.repository }}" \
+            --ref main \
+            -f commit_sha="${{ github.sha }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+  review:
+    if: github.event_name == 'workflow_dispatch'
+    uses: JacobPEvans/ai-workflows/.github/workflows/post-merge-tests.yml@v0.3.3
+    with:
+      commit_sha: ${{ inputs.commit_sha || github.sha }}
+    secrets: inherit
+```
+
+Note: `actions: write` is required for `gh workflow run` to trigger the same workflow.
+
+---
+
+## Bot Guard Pattern
+
+Used by any workflow triggered by `issues:` events to prevent bot-created issues from causing Claude failures.
+
+**Required on**: issue-triage, issue-auto-resolve
+
+**Apply at both levels**:
+1. Reusable workflow job: `if: github.event.sender.type != 'Bot'`
+2. Consumer caller job: `if: github.event.sender.type != 'Bot'`
+
+```yaml
+jobs:
+  triage:
+    if: github.event.sender.type != 'Bot'
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-triage.yml@v0.3.3
+    secrets: inherit
+```
+
+Without this guard, workflows created by bots (e.g., Next Steps creating feature issues) trigger `claude-code-action@v1`, which rejects non-human actors with "Non-human actor: claude (type: Bot)" and marks the run as failed.
