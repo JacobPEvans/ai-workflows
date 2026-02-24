@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.2](https://github.com/JacobPEvans/ai-workflows/compare/v0.3.1...v0.3.2) (2026-02-24)
+
+
+### Bug Fixes
+
+* **e2e:** correct repo name from nix-config to nix ([#50](https://github.com/JacobPEvans/ai-workflows/issues/50)) ([6d8b83e](https://github.com/JacobPEvans/ai-workflows/commit/6d8b83e6d6537ff58c0d732ded76c4d2657eb5f6))
+* **e2e:** filter wait_for_run by start time and use unique issue titles ([#47](https://github.com/JacobPEvans/ai-workflows/issues/47)) ([f7f069b](https://github.com/JacobPEvans/ai-workflows/commit/f7f069b8c112fafb6e1eef37b7d26fa4a4d6cb81))
+* **e2e:** use technitium_dns README as test issue topic ([#49](https://github.com/JacobPEvans/ai-workflows/issues/49)) ([7e56a8b](https://github.com/JacobPEvans/ai-workflows/commit/7e56a8b27ff24a9b04a76951ab17f87a58c863a6))
+
 ## [0.3.1](https://github.com/JacobPEvans/ai-workflows/compare/v0.3.0...v0.3.1) (2026-02-23)
 
 
