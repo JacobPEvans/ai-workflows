@@ -1,7 +1,7 @@
 module.exports = async ({ github, context, core }) => {
   const owner = context.repo.owner;
   const repo = context.repo.repo;
-  const sha = context.sha;
+  const sha = process.env.OVERRIDE_SHA || context.sha;
 
   // Get the commit to find changed files
   const { data: commit } = await github.rest.repos.getCommit({

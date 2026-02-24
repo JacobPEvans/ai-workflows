@@ -6,12 +6,12 @@ Run via `.github/scripts/verification/e2e-test.sh` or manually using the steps b
 ## Prerequisites
 
 - `gh` CLI authenticated with sufficient scopes
-- All consumer repos updated to `@v0.3.0`
+- All consumer repos updated to `@v0.3.3`
 - Secrets configured: `CLAUDE_CODE_OAUTH_TOKEN`, `GH_CLAUDE_SSH_SIGNING_KEY`
 
 ## Consumer Repos
 
-- `JacobPEvans/nix-config` (nix)
+- `JacobPEvans/nix` (nix)
 - `JacobPEvans/terraform-proxmox`
 - `JacobPEvans/ansible-proxmox-apps`
 
@@ -25,9 +25,10 @@ Tests: **issue-triage**, **issue-resolver** (via issue-auto-resolve.yml), **clau
 
 **Trigger**:
 ```bash
+TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 gh issue create \
   --repo JacobPEvans/ansible-proxmox-apps \
-  --title "chore: add comment to main playbook" \
+  --title "chore: add comment to main playbook ($TIMESTAMP)" \
   --body "Add a brief descriptive comment to the top of site.yml" \
   --label ""
 ```
@@ -89,15 +90,16 @@ PR=$(gh pr list --repo JacobPEvans/ansible-proxmox-apps --state open --json numb
 gh pr merge $PR --repo JacobPEvans/ansible-proxmox-apps --squash
 ```
 
-**Expected**: `push: branches: [main]` triggers both post-merge workflows
+**Expected**: `push: branches: [main]` triggers the `dispatch` job in both post-merge callers → re-triggers as `workflow_dispatch` → runs the reusable workflow
 
 **Verify**:
 ```bash
-gh run list --repo JacobPEvans/ansible-proxmox-apps --workflow "Post-Merge Docs Review" --limit 1 --json status,conclusion,url
-gh run list --repo JacobPEvans/ansible-proxmox-apps --workflow "Post-Merge Tests" --limit 1 --json status,conclusion,url
+# Check dispatch runs (event_name=push) — should show "dispatch" job succeeded:
+gh run list --repo JacobPEvans/ansible-proxmox-apps --workflow "Post-Merge Docs Review" --limit 2 --json status,conclusion,event,url
+gh run list --repo JacobPEvans/ansible-proxmox-apps --workflow "Post-Merge Tests" --limit 2 --json status,conclusion,event,url
 ```
 
-**Pass condition**: Runs triggered. Skipping via gate job (no test infra / no doc changes) is valid.
+**Pass condition**: Two runs each — a `push`-triggered dispatch run (success) and a `workflow_dispatch` review run. The review run may skip via gate job (no test infra / no doc changes) — that is valid.
 
 ---
 
@@ -159,7 +161,7 @@ These fire on cron — verify by checking the most recent run after deployment.
 
 Run across each consumer repo:
 ```bash
-for REPO in JacobPEvans/nix-config JacobPEvans/terraform-proxmox JacobPEvans/ansible-proxmox-apps; do
+for REPO in JacobPEvans/nix JacobPEvans/terraform-proxmox JacobPEvans/ansible-proxmox-apps; do
   for WF in "Best Practices Recommender" "Code Simplifier" "Next Steps" "Issue Sweeper" "Issue Hygiene"; do
     echo "=== $REPO / $WF ==="
     gh run list --repo "$REPO" --workflow "$WF" --limit 1 --json status,conclusion,createdAt,url 2>/dev/null || echo "Not found"
@@ -193,7 +195,7 @@ Tests: **label-sync**, **project-router**, **repo-orchestrator**
 These workflows have no event trigger — they are `workflow_call` / `workflow_dispatch` only. Verify via manual dispatch:
 
 ```bash
-for REPO in JacobPEvans/nix-config JacobPEvans/terraform-proxmox JacobPEvans/ansible-proxmox-apps; do
+for REPO in JacobPEvans/nix JacobPEvans/terraform-proxmox JacobPEvans/ansible-proxmox-apps; do
   echo "=== $REPO ==="
   gh workflow run "Label Sync" --repo "$REPO"
   sleep 5

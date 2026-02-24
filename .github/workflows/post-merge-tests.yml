@@ -10,6 +10,11 @@ name: Post-Merge Tests
 
 on:
   workflow_call:
+    inputs:
+      commit_sha:
+        description: 'Override commit SHA for workflow_dispatch callers'
+        required: false
+        type: string
   workflow_dispatch:
 
 # Workflow-level permissions set the maximum for all jobs.
@@ -73,7 +78,7 @@ jobs:
       - name: Render prompt
         id: prompt
         env:
-          MERGE_SHA: ${{ github.sha }}
+          MERGE_SHA: ${{ inputs.commit_sha || github.sha }}
           REPO_FULL_NAME: ${{ github.repository }}
         run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/post-merge-tests.md MERGE_SHA REPO_FULL_NAME
 
