@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.3](https://github.com/JacobPEvans/ai-workflows/compare/v0.3.2...v0.3.3) (2026-02-24)
+
+
+### Bug Fixes
+
+* **post-merge:** add dispatch pattern and bot guard ([#51](https://github.com/JacobPEvans/ai-workflows/issues/51)) ([eabd685](https://github.com/JacobPEvans/ai-workflows/commit/eabd685d570939af670732a1537bb8bae5029891))
+
 ## [0.3.2](https://github.com/JacobPEvans/ai-workflows/compare/v0.3.1...v0.3.2) (2026-02-24)
 
 
