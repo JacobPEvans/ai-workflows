@@ -58,7 +58,11 @@ If the work requires design decisions or significant changes:
 - Create an issue describing the suggested next step
 - Title format: `[type]: [description]`
 - Body must include: context from recent merges, specific gap identified, suggested approach
-- Apply appropriate `type:*` label
+- Apply ALL of the following labels (required for the issue to flow through the auto-resolve pipeline):
+  - `ai:created` — marks as AI-generated, enables the dispatch path
+  - `type:*` — choose the appropriate type (bug, chore, docs, ci, test, refactor, perf)
+  - `size:xs` or `size:s` — only small issues are auto-resolvable; use `size:xs` for trivial changes, `size:s` for straightforward ones
+  - `priority:*` — choose appropriate priority (critical, high, medium, low)
 
 ## Rules
 

@@ -37,6 +37,10 @@ on:
         description: "Comma-separated author_association values allowed to trigger resolution"
         type: string
         default: "OWNER,MEMBER,COLLABORATOR,CONTRIBUTOR"
+      daily_limit:
+        description: "Max resolver runs per repo per 24h (0 = disabled)"
+        type: string
+        default: "5"
 
 # Workflow-level permissions set the maximum for all jobs.
 # permissions: {} silently skips all jobs in cross-repo calls.
@@ -80,6 +84,7 @@ jobs:
           MAX_ATTEMPTS: ${{ inputs.max_attempts }}
           ISSUE_NUMBER: ${{ inputs.issue_number }}
           ALLOWED_AUTHORS: ${{ inputs.allowed_authors }}
+          DAILY_LIMIT: ${{ inputs.daily_limit }}
         uses: actions/github-script@v8
         with:
           script: |

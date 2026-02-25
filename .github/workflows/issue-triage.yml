@@ -3,6 +3,11 @@ name: "Issue Triage"
 
 on:
   workflow_call:
+    inputs:
+      issue_number:
+        description: "Issue number to triage (dispatch pattern; 0 = from event payload)"
+        type: string
+        default: "0"
   workflow_dispatch:
 
 # Workflow-level permissions set the maximum for all jobs.
@@ -17,7 +22,7 @@ concurrency:
 
 jobs:
   triage:
-    if: github.event.sender.type != 'Bot'
+    if: (inputs.issue_number || '0') != '0' || github.event.sender.type != 'Bot'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -39,7 +44,9 @@ jobs:
 
       - name: Render prompt
         id: prompt
-        run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/issue-triage.md
+        env:
+          ISSUE_NUMBER: ${{ inputs.issue_number || '0' }}
+        run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/issue-triage.md ISSUE_NUMBER
 
       - name: Run Claude
         uses: anthropics/claude-code-action@v1
