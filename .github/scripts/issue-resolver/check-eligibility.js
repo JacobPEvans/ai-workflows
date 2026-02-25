@@ -105,6 +105,10 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
+  // Marker used by Gates 9 and 10 — only count bot-authored comments to prevent spoofing
+  const marker = '<!-- claude-issue-resolver-attempt -->';
+  const isBotMarker = c => c.user?.type === 'Bot' && c.body && c.body.includes(marker);
+
   // Gate 9: Attempt limiting via comment markers (always runs)
   const maxAttempts = parseInt(process.env.MAX_ATTEMPTS || '1', 10);
   const comments = await github.paginate(github.rest.issues.listComments, {
@@ -113,8 +117,7 @@ module.exports = async ({ github, context, core }) => {
     issue_number: issueNumber,
     per_page: 100,
   });
-  const marker = '<!-- claude-issue-resolver-attempt -->';
-  const attemptCount = comments.filter(c => c.body.includes(marker)).length;
+  const attemptCount = comments.filter(isBotMarker).length;
   if (attemptCount >= maxAttempts) {
     core.setOutput('should_run', 'false');
     core.info(`Issue #${issueNumber} has reached max attempts (${maxAttempts})`);
@@ -125,14 +128,13 @@ module.exports = async ({ github, context, core }) => {
   const dailyLimit = parseInt(process.env.DAILY_LIMIT || '5', 10);
   if (dailyLimit > 0) {
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const marker = '<!-- claude-issue-resolver-attempt -->';
     const recentComments = await github.paginate(github.rest.issues.listCommentsForRepo, {
       owner: context.repo.owner,
       repo: context.repo.repo,
       since: since,
       per_page: 100,
     });
-    const todayAttempts = recentComments.filter(c => c.body && c.body.includes(marker)).length;
+    const todayAttempts = recentComments.filter(isBotMarker).length;
     if (todayAttempts >= dailyLimit) {
       core.setOutput('should_run', 'false');
       core.info(`Daily limit reached: ${todayAttempts}/${dailyLimit} resolver attempts in last 24h`);
