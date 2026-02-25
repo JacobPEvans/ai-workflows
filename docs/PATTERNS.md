@@ -193,18 +193,106 @@ Note: `actions: write` is required for `gh workflow run` to trigger the same wor
 
 Used by any workflow triggered by `issues:` events to prevent bot-created issues from causing Claude failures.
 
-**Required on**: issue-triage, issue-auto-resolve
+**Background**: `claude-code-action@v1` internally rejects Bot-type senders for `issues:` events. A simple `if:` condition on the job is insufficient — the action itself fails. The solution is the AI Dispatch Pattern (see below), which re-triggers bot-created issues as `workflow_dispatch`.
 
-**Apply at both levels**:
-1. Reusable workflow job: `if: github.event.sender.type != 'Bot'`
-2. Consumer caller job: `if: github.event.sender.type != 'Bot'`
+**Required on**: issue-triage (reusable workflow job guard)
+
+The reusable `issue-triage.yml` guards against direct bot-triggered calls:
 
 ```yaml
 jobs:
   triage:
-    if: github.event.sender.type != 'Bot'
-    uses: JacobPEvans/ai-workflows/.github/workflows/issue-triage.yml@v0.3.3
-    secrets: inherit
+    if: (inputs.issue_number || '0') != '0' || github.event.sender.type != 'Bot'
 ```
 
-Without this guard, workflows created by bots (e.g., Next Steps creating feature issues) trigger `claude-code-action@v1`, which rejects non-human actors with "Non-human actor: claude (type: Bot)" and marks the run as failed.
+This passes when an `issue_number` is explicitly provided (dispatch pattern) OR when the sender is human. Blocks only direct bot-triggered calls without an issue number.
+
+---
+
+## AI Dispatch Pattern
+
+Used by consumer `issue-auto-resolve.yml` callers to allow AI-created issues (tagged `ai:created`) to flow through the triage + resolve pipeline while blocking random bot spam.
+
+**Why**: `claude-code-action@v1` rejects Bot-type senders internally. Re-dispatching as `workflow_dispatch` bypasses this restriction.
+
+**Flow**:
+```
+issues:opened → dispatch job → workflow_dispatch → [triage if human] → resolve
+                 ↑ filters:
+                 - human issues: dispatch with skip_triage=false
+                 - ai:created bot issues: dispatch with skip_triage=true
+                 - other bot issues: exit (no dispatch)
+```
+
+**Consumer caller** (three-job unified pattern):
+```yaml
+name: Issue Auto-Resolve
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        required: true
+        type: string
+      skip_triage:
+        type: string
+        default: "false"
+permissions:
+  actions: write
+  contents: write
+  id-token: write
+  issues: write
+  pull-requests: write
+jobs:
+  dispatch:
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Dispatch as workflow_dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WORKFLOW_NAME: ${{ github.workflow }}
+          ISSUE_NUM: ${{ github.event.issue.number }}
+          IS_BOT: ${{ github.event.sender.type == 'Bot' }}
+          HAS_AI_LABEL: ${{ contains(github.event.issue.labels.*.name, 'ai:created') }}
+        run: |
+          if [[ "$IS_BOT" == "true" && "$HAS_AI_LABEL" != "true" ]]; then
+            echo "Bot issue without ai:created label — skipping"
+            exit 0
+          fi
+          SKIP="false"
+          if [[ "$IS_BOT" == "true" ]]; then SKIP="true"; fi
+          gh workflow run "$WORKFLOW_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            -f issue_number="$ISSUE_NUM" \
+            -f skip_triage="$SKIP"
+  run-triage:
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.skip_triage != 'true'
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-triage.yml@v0.4.0
+    secrets: inherit
+    with:
+      issue_number: ${{ inputs.issue_number }}
+  resolve-issue:
+    needs: [run-triage]
+    if: >-
+      always() &&
+      github.event_name == 'workflow_dispatch' &&
+      (needs.run-triage.result == 'success' || needs.run-triage.result == 'skipped')
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-resolver.yml@v0.4.0
+    secrets: inherit
+    with:
+      repo_context: "<repo-specific>"
+      issue_number: ${{ inputs.issue_number }}
+```
+
+**Key points**:
+- `WORKFLOW_NAME` passed via `env:` (not inline `${{ github.workflow }}`) to prevent template injection
+- `always()` on `resolve-issue` ensures it runs even when `run-triage` was skipped
+- `ai:created` label is the trust signal for bot issues (applied by `next-steps.yml`)
+- `actions: write` scoped to the dispatch job only
+- Daily resolver limit enforced by Gate 10 in `check-eligibility.js` (default: 5/24h)

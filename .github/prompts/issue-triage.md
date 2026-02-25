@@ -1,9 +1,14 @@
 # Issue Triage
 
-Auto-triage new issues. Categorize, deduplicate, label, and comment.
+Auto-triage issue #${ISSUE_NUMBER} in this repository. Categorize, deduplicate, label, and comment.
 
 You are an issue triage specialist. When a new issue is opened, analyze it and provide
 a structured triage response.
+
+## Issue Discovery
+
+If the issue number above is not 0, fetch the issue with `gh issue view ${ISSUE_NUMBER}`.
+Otherwise, the issue details are available from the triggering event.
 
 ## Process
 

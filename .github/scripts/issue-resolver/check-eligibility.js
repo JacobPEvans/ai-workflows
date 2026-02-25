@@ -121,6 +121,26 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
+  // Gate 10: Daily resolve limit (applies to all triggers; set daily_limit=0 to disable)
+  const dailyLimit = parseInt(process.env.DAILY_LIMIT || '5', 10);
+  if (dailyLimit > 0) {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const marker = '<!-- claude-issue-resolver-attempt -->';
+    const recentComments = await github.paginate(github.rest.issues.listCommentsForRepo, {
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      since: since,
+      per_page: 100,
+    });
+    const todayAttempts = recentComments.filter(c => c.body && c.body.includes(marker)).length;
+    if (todayAttempts >= dailyLimit) {
+      core.setOutput('should_run', 'false');
+      core.info(`Daily limit reached: ${todayAttempts}/${dailyLimit} resolver attempts in last 24h`);
+      return;
+    }
+    core.info(`Daily resolve count: ${todayAttempts}/${dailyLimit}`);
+  }
+
   // Content sanitization: truncate and scan for injection patterns
   let issueBody = issue.body || '';
   if (issueBody.length > 4000) {
