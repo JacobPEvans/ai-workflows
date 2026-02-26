@@ -30,7 +30,7 @@ This repo is the single source of truth for CI/CD automation workflows. Each wor
 - Prompts rendered via `render-prompt.sh` + step output (envsubst)
 - Static prompts: most workflows
 - Dynamic prompts (ci-fix, post-merge-tests, post-merge-docs-review): `render-prompt.sh` with named env vars
-- Write workflows (code-simplifier, next-steps, post-merge-*, ci-fix, issue-resolver): add `ssh_signing_key: ${{ secrets.GH_CLAUDE_SSH_SIGNING_KEY }}`
+- Write workflows (code-simplifier, next-steps, post-merge-*, ci-fix, issue-resolver): add `use_commit_signing: "true"` and restrict git to read-only subcommands (see docs/PATTERNS.md Commit Signing Pattern)
 
 **Supported event types**: `issues`, `issue_comment`, `pull_request`, `pull_request_review`, `pull_request_review_comment`, `workflow_dispatch`, `repository_dispatch`, `schedule`, `workflow_run`. `push` is NOT supported — post-merge workflows use the dispatch pattern (see `docs/PATTERNS.md`).
 

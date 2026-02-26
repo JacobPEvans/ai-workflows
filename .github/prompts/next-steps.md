@@ -38,17 +38,17 @@ Look for incomplete follow-through:
 
 ## Duplicate Check
 
-Before creating any output, search existing open issues and draft PRs for overlap.
+Before creating any output, search existing open issues and PRs for overlap.
 If a matching issue or PR already exists, exit without action.
 
 ## Output
 
 Choose exactly ONE action based on impact:
 
-### Option A: Draft PR (for simple changes)
+### Option A: PR (for simple changes)
 
 If the fix is straightforward (< 50 lines changed, <= 3 files):
-- Create a draft PR with the fix
+- Create a PR with the fix
 - Title format: `chore: [description of next step]`
 - Body must explain: what was detected, why this is the logical next step, what changed
 
@@ -67,7 +67,6 @@ If the work requires design decisions or significant changes:
 ## Rules
 
 - Never create both a PR and an issue in the same run
-- Draft PRs only — never open ready-for-review PRs
 - One action per run maximum
 - Do not suggest work that contradicts recent merge direction
 - Focus on momentum — suggest what naturally comes next, not what would be ideal
