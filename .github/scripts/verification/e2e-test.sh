@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # e2e-test.sh — End-to-end workflow verification script
 #
-# Tests that all workflows are operational after deployment to v0.3.0.
+# Tests that all workflows are operational after deployment to v0.5.0.
 # Creates real events and monitors GitHub Actions workflow runs.
 #
 # Usage:
@@ -140,16 +140,36 @@ cmd_issue_lifecycle() {
     fail "Issue has no labels after triage"
   fi
 
-  info "Checking for draft PR linked to issue #$issue_num..."
+  info "Checking for PR linked to issue #$issue_num..."
   local pr_num
-  pr_num=$(gh pr list --repo "$repo" --state open --json number,isDraft \
-    -q '.[] | select(.isDraft==true) | .number' 2>/dev/null | head -1 || echo "")
+  pr_num=$(gh pr list --repo "$repo" --state open --search "closes #${issue_num}" \
+    --json number -q '.[0].number' 2>/dev/null || echo "")
   if [[ -n "$pr_num" ]]; then
     save_state "prs" "$repo" "$pr_num"
-    pass "Draft PR #$pr_num created by issue-resolver"
+    pass "PR #$pr_num created by issue-resolver"
+
+    # Verify commit is signed (v0.5.0 API signing)
+    local head_sha verified
+    head_sha=$(gh pr view "$pr_num" --repo "$repo" --json headRefOid -q '.headRefOid')
+    verified=$(gh api "repos/$repo/commits/$head_sha" --jq '.commit.verification.verified')
+    if [[ "$verified" == "true" ]]; then
+      pass "PR #$pr_num head commit is signed and verified"
+    else
+      fail "PR #$pr_num head commit is NOT signed (verified=$verified)"
+    fi
+
+    # Verify mergeable state
+    local merge_state
+    merge_state=$(gh pr view "$pr_num" --repo "$repo" --json mergeStateStatus -q '.mergeStateStatus')
+    if [[ "$merge_state" == "CLEAN" || "$merge_state" == "UNSTABLE" ]]; then
+      pass "PR #$pr_num mergeable state: $merge_state"
+    else
+      fail "PR #$pr_num unexpected merge state: $merge_state"
+    fi
+
     wait_for_run "$repo" "Claude Code Review" "$start_time"
   else
-    fail "No draft PR found — issue-resolver skipped or failed"
+    fail "No PR found referencing issue #$issue_num — issue-resolver skipped or failed"
     info "Labels on issue #$issue_num: $labels"
     return 1
   fi

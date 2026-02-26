@@ -10,6 +10,16 @@ Thank you for your interest in contributing to ai-workflows.
 4. Commit and push
 5. Open a pull request
 
+## Testing
+
+Run the test suite before submitting a PR:
+
+```bash
+bun test   # No install step needed — bun:test is built-in
+```
+
+Every `.js` script in `.github/scripts/` must have a corresponding test in `tests/`.
+
 ## Adding a New Reusable Workflow
 
 1. Create `.github/workflows/<name>.yml` — the reusable workflow
@@ -69,12 +79,12 @@ jobs:
             --model claude-sonnet-4-6
 ```
 
-For workflows that create commits or PRs, add SSH signing:
+For workflows that create commits or PRs, add API commit signing:
 
 ```yaml
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          ssh_signing_key: ${{ secrets.GH_CLAUDE_SSH_SIGNING_KEY }}
+          use_commit_signing: "true"
 ```
 
 ### Dynamic Prompts
@@ -125,7 +135,7 @@ Pass `${{ }}` expression values via `env:` on the step, then read via `process.e
 ## Authentication
 
 - `CLAUDE_CODE_OAUTH_TOKEN` — used by all Claude Code workflows, no aliases
-- `GH_CLAUDE_SSH_SIGNING_KEY` — required for workflows that create commits (code-simplifier, next-steps, post-merge-*, ci-fix, issue-resolver)
+- Write workflows use `use_commit_signing: "true"` (API mode); no SSH key needed
 
 ## Permissions
 

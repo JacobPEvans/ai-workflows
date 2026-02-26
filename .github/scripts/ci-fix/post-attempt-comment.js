@@ -4,7 +4,7 @@ module.exports = async ({ github, context, core }) => {
     core.setFailed('PR_NUMBER is not a valid number');
     return;
   }
-  const attempt = process.env.ATTEMPT;
+  const attempt = process.env.ATTEMPT || '?';
   await github.rest.issues.createComment({
     owner: context.repo.owner,
     repo: context.repo.repo,

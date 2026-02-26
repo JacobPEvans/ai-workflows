@@ -108,3 +108,14 @@ Use `CLAUDE_CODE_OAUTH_TOKEN` for all Claude Code workflows. Do not create alias
 ### Version Tags for Actions
 
 Use version tags (`@v7`, `@v4`, `@v1`) for trusted first-party GitHub actions (`actions/*`, `anthropics/*`). SHA pinning is not required for these.
+
+### Testing
+
+All JavaScript scripts in `.github/scripts/` have unit tests in the `tests/` directory.
+Run `bun test` before pushing any changes to scripts.
+
+- Test framework: bun:test (built-in, no external dependencies, no install step)
+- Helpers: `tests/helpers.js` (shared mock factories for github, context, core)
+- CI: `.github/workflows/test.yml` runs automatically on PRs touching scripts
+- E2E: `.github/scripts/verification/e2e-test.sh` (manual — creates real GitHub events)
+- New scripts must include a test file in `tests/`; test happy path + key failure modes

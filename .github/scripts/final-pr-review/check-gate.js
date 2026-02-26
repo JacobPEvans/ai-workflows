@@ -52,7 +52,7 @@ module.exports = async ({ github, context, core }) => {
   });
 
   const humanReviews = reviews.filter(r =>
-    r.user.type === 'User' && r.state !== 'PENDING'
+    r.user?.type === 'User' && r.state !== 'PENDING'
   );
   if (humanReviews.length === 0) {
     core.setOutput('should_run', 'false');
