@@ -70,7 +70,7 @@ jobs:
 
       - name: Check review eligibility
         id: eligibility
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           MAX_REVIEWS: ${{ inputs.max_reviews }}

@@ -8,22 +8,30 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  // 0 = unlimited
+  // 0 = unlimited; reject negative or NaN
+  if (isNaN(maxReviews) || maxReviews < 0) {
+    core.setOutput('eligible', 'false');
+    core.info(`Invalid max_reviews value: "${process.env.MAX_REVIEWS}" — must be a non-negative integer`);
+    return;
+  }
   if (maxReviews === 0) {
     core.setOutput('eligible', 'true');
     core.info('max_reviews=0: unlimited reviews allowed');
     return;
   }
 
-  // Count actual PR reviews from claude[bot] (not progress comments)
-  const reviews = await github.paginate(github.rest.pulls.listReviews, {
+  // Count PR comments from claude[bot] as completed Claude reviews.
+  // Using issue comments (PR-level) rather than listReviews because Claude posts
+  // feedback via `gh pr comment`, not necessarily via a formal review submission.
+  // progress tracking comments come from github-actions[bot], not claude[bot].
+  const comments = await github.paginate(github.rest.issues.listComments, {
     owner: context.repo.owner,
     repo: context.repo.repo,
-    pull_number: prNumber,
+    issue_number: prNumber,
     per_page: 100,
   });
 
-  const claudeReviews = reviews.filter(r => r.user?.login === 'claude[bot]');
+  const claudeReviews = comments.filter(c => c.user?.login === 'claude[bot]' && c.user?.type === 'Bot');
   const reviewCount = claudeReviews.length;
 
   if (reviewCount >= maxReviews) {
