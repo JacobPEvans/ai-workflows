@@ -15,6 +15,14 @@ on:
         description: "Optional repo-specific review focus"
         type: string
         default: ""
+      max_reviews:
+        description: "Max Claude reviews per PR (0 = unlimited)"
+        type: string
+        default: "1"
+      model:
+        description: "Claude model to use"
+        type: string
+        default: "claude-sonnet-4-6"
   workflow_dispatch:
 
 # Workflow-level permissions set the maximum for all jobs.
@@ -27,7 +35,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: claude-review-${{ github.repository }}-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
+  group: claude-review-${{ github.repository }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -60,7 +68,19 @@ jobs:
             .github/prompts
           path: .ai-workflows
 
+      - name: Check review eligibility
+        id: eligibility
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          MAX_REVIEWS: ${{ inputs.max_reviews }}
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/claude-review/check-eligibility.js');
+            await run({ github, context, core });
+
       - name: Render prompt
+        if: steps.eligibility.outputs.eligible == 'true'
         id: prompt
         env:
           REPO: ${{ github.repository }}
@@ -69,13 +89,14 @@ jobs:
         run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/claude-review.md
 
       - name: Run Claude Code Review
+        if: steps.eligibility.outputs.eligible == 'true'
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           track_progress: true
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: |
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+            --model ${{ inputs.model }} --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
 
   interactive:
     name: Claude Interactive
