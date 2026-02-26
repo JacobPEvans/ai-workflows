@@ -6,8 +6,8 @@ Run via `.github/scripts/verification/e2e-test.sh` or manually using the steps b
 ## Prerequisites
 
 - `gh` CLI authenticated with sufficient scopes
-- All consumer repos updated to `@v0.3.3`
-- Secrets configured: `CLAUDE_CODE_OAUTH_TOKEN`, `GH_CLAUDE_SSH_SIGNING_KEY`
+- All consumer repos updated to `@v0.5.0`
+- Secrets configured: `CLAUDE_CODE_OAUTH_TOKEN`
 
 ## Consumer Repos
 
@@ -35,8 +35,8 @@ gh issue create \
 
 **Expected chain**:
 1. `issues: [opened]` → **issue-triage** → adds `type:chore` + `size:xs` labels
-2. `issues: [opened]` → **issue-resolver** (eligibility passes for chore+xs) → creates draft PR
-3. Draft PR creation → **claude-review** triggers on `pull_request: [opened]`
+2. `issues: [opened]` → **issue-resolver** (eligibility passes for chore+xs) → creates non-draft PR with signed commit
+3. PR creation → **claude-review** triggers on `pull_request: [opened]`
 
 **Verify**:
 ```bash
@@ -47,11 +47,14 @@ gh run list --repo JacobPEvans/ansible-proxmox-apps --workflow "Claude Code Revi
 # Check issue labels:
 ISSUE=$(gh issue list --repo JacobPEvans/ansible-proxmox-apps --search "add comment to main playbook" --json number -q '.[0].number')
 gh issue view $ISSUE --repo JacobPEvans/ansible-proxmox-apps --json labels
-# Check for linked PR:
-gh pr list --repo JacobPEvans/ansible-proxmox-apps --state open --json title,isDraft
+# Check for linked PR with signed commits and mergeable state:
+PR=$(gh pr list --repo JacobPEvans/ansible-proxmox-apps --state open --json number,title -q '.[0].number')
+HEAD_SHA=$(gh pr view $PR --repo JacobPEvans/ansible-proxmox-apps --json headRefOid -q '.headRefOid')
+gh api "repos/JacobPEvans/ansible-proxmox-apps/commits/$HEAD_SHA" --jq '.commit.verification'
+gh pr view $PR --repo JacobPEvans/ansible-proxmox-apps --json mergeStateStatus
 ```
 
-**Pass condition**: issue-triage run has `conclusion: success`, issue has labels, PR was created.
+**Pass condition**: issue-triage run has `conclusion: success`, issue has labels, non-draft PR created with `verification.verified: true` and merge state CLEAN or UNSTABLE.
 
 ---
 

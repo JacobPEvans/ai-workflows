@@ -11,7 +11,7 @@ module.exports = async ({ github, context, core }) => {
     per_page: 100
   });
   const marker = '<!-- claude-ci-fix-attempt -->';
-  const attempts = comments.filter(c => c.body.includes(marker)).length;
+  const attempts = comments.filter(c => c.body && c.body.includes(marker)).length;
   core.info(`Found ${attempts} previous fix attempts`);
   if (attempts >= 2) {
     core.info('Max attempts reached, skipping');
