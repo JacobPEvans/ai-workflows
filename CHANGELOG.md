@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.4.0...v0.5.0) (2026-02-26)
+
+
+### Features
+
+* **signing:** switch to API commit signing, remove draft PR mode ([#55](https://github.com/JacobPEvans/ai-workflows/issues/55)) ([7ec52b9](https://github.com/JacobPEvans/ai-workflows/commit/7ec52b9bb35768f999394235d08049a16f7870f9))
+
 ## [0.4.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.3.3...v0.4.0) (2026-02-25)
 
 
