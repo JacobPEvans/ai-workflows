@@ -142,8 +142,8 @@ cmd_issue_lifecycle() {
 
   info "Checking for PR linked to issue #$issue_num..."
   local pr_num
-  pr_num=$(gh pr list --repo "$repo" --state open --search "closes #${issue_num}" \
-    --json number -q '.[0].number' 2>/dev/null || echo "")
+  pr_num=$(gh pr list --repo "$repo" --state open --json number,body \
+    -q "[.[] | select(.body | contains(\"closes #${issue_num}\"))][0].number" 2>/dev/null || echo "")
   if [[ -n "$pr_num" ]]; then
     save_state "prs" "$repo" "$pr_num"
     pass "PR #$pr_num created by issue-resolver"
