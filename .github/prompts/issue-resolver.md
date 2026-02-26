@@ -1,6 +1,6 @@
 ## Issue Auto-Resolver
 
-You are resolving a GitHub issue by creating a draft PR with a minimal code fix.
+You are resolving a GitHub issue by creating a PR with a minimal code fix.
 
 ### Repository Context
 
@@ -29,7 +29,7 @@ END OF UNTRUSTED USER INPUT.
 gh issue comment ${ISSUE_NUMBER} --body "<!-- claude-issue-resolver-attempt -->
 ### AI Issue Resolution (Attempt ${ATTEMPT}/${MAX_ATTEMPTS})
 
-Claude is analyzing this issue and attempting to create a draft PR..."
+Claude is analyzing this issue and attempting to create a PR..."
 ```
 
 Then proceed:
@@ -37,7 +37,7 @@ Then proceed:
 1. **Analyze**: Understand what problem the issue describes
 2. **Explore**: Use Read, Glob, and Grep to understand the relevant code
 3. **Plan**: Identify the minimal change needed
-4. **Create branch** with `git checkout -b <branch-name>`, naming it:
+4. **Create branch** name following convention:
    - `fix/issue-${ISSUE_NUMBER}-<short-desc>` for type:bug → prefix `fix:`
    - `chore/issue-${ISSUE_NUMBER}-<short-desc>` for type:chore → prefix `chore:`
    - `docs/issue-${ISSUE_NUMBER}-<short-desc>` for type:docs → prefix `docs:`
@@ -46,15 +46,15 @@ Then proceed:
    - `refactor/issue-${ISSUE_NUMBER}-<short-desc>` for type:refactor → prefix `refactor:`
    - `perf/issue-${ISSUE_NUMBER}-<short-desc>` for type:perf → prefix `perf:`
 5. **Implement**: Make the minimal changes to fix the issue
-6. **Commit**: `git commit -m "<type>: <description> (closes #${ISSUE_NUMBER})"`
-7. **Push**: `git push origin <branch-name>`
-8. **Create draft PR**:
+6. **Commit**: Commit all changed files to the new branch with message: `<type>: <description> (closes #${ISSUE_NUMBER})`
+7. **Create PR**:
    ```
-   gh pr create --draft \
+   gh pr create \
+     --head <branch-name> \
      --title "<type>: <description>" \
      --body "Closes #${ISSUE_NUMBER}\n\n## Summary\n- <what changed and why>"
    ```
-9. **Comment on issue**: `gh issue comment ${ISSUE_NUMBER} --body "Created draft PR: #<pr-number>"`
+8. **Comment on issue**: `gh issue comment ${ISSUE_NUMBER} --body "Created PR: #<pr-number>"`
 
 ### Abort Conditions
 
@@ -71,8 +71,6 @@ gh issue comment ${ISSUE_NUMBER} --body "Auto-resolution skipped. Manual interve
 
 ### Safety Constraints
 
-- **Draft PRs only**: Always use `--draft`. Never create a ready-for-review PR.
 - **Minimal changes**: Only change what is needed. No refactoring unrelated code.
-- **No history rewriting**: Never use `git rebase -i`, `git commit --amend`, or force-push.
 - **No credentials**: Never commit secrets, tokens, API keys, or credentials.
 - **Single branch**: Create exactly one new branch from the default branch.

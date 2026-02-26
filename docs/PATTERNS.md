@@ -34,9 +34,9 @@ Used by most workflows. Static prompt, read-only tools.
 
 ---
 
-## SSH Signing Pattern
+## Commit Signing Pattern
 
-Used by workflows that create commits or PRs. Adds `ssh_signing_key:` for verified commits.
+Used by workflows that create commits or PRs. Adds `use_commit_signing: "true"` for commits verified as the Claude GitHub App.
 
 **Workflows**: code-simplifier, next-steps (creates PRs), post-merge-docs-review, post-merge-tests, ci-fix, issue-resolver
 
@@ -48,12 +48,14 @@ Used by workflows that create commits or PRs. Adds `ssh_signing_key:` for verifi
   uses: anthropics/claude-code-action@v1
   with:
     claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-    ssh_signing_key: ${{ secrets.GH_CLAUDE_SSH_SIGNING_KEY }}
+    use_commit_signing: "true"
     prompt: ${{ steps.prompt.outputs.content }}
     claude_args: >-
-      --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git:*),Bash(gh pr:*)"
+      --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(gh pr:*)"
       --model claude-sonnet-4-6
 ```
+
+Uses GitHub API commit signing. Commits are automatically verified as the Claude GitHub App. `Bash(git:*)` is restricted to read-only subcommands to prevent unsigned CLI commits.
 
 ---
 

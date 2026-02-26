@@ -1,7 +1,7 @@
 # Code Simplifier
 #
 # Nightly DRY enforcer. Finds duplication, dead code, and simplification opportunities.
-# Creates focused draft PRs.
+# Creates focused PRs.
 #
 # This is a reusable workflow that can be called from other repositories.
 
@@ -52,8 +52,8 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          ssh_signing_key: ${{ secrets.GH_CLAUDE_SSH_SIGNING_KEY }}
+          use_commit_signing: "true"
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
-            --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git:*),Bash(gh pr:*),Bash(gh api:*)"
+            --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(gh pr:*),Bash(gh api:*)"
             --model claude-sonnet-4-6

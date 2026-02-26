@@ -43,7 +43,7 @@ If threshold is met:
 
 1. Create a new branch from main with name docs/fix-<short-description>
 2. Fix the identified issues directly in the documentation files
-3. Create a draft PR with:
+3. Create a PR with:
    - Title: docs: fix <brief description of issues>
    - Body listing each issue found, its category (critical/non-critical), and what was fixed
    - Include a "Detection Trigger" section explaining which merge prompted this review
@@ -54,5 +54,4 @@ If threshold is met:
 - Preserve the original author's voice and formatting choices
 - If unsure whether something is an issue, skip it
 - Maximum 1 PR per run
-- Draft PRs only — never open ready-for-review PRs
 - Do not create PRs that only fix formatting or style
