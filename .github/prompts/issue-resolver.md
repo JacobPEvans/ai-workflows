@@ -38,13 +38,13 @@ Then proceed:
 2. **Explore**: Use Read, Glob, and Grep to understand the relevant code
 3. **Plan**: Identify the minimal change needed
 4. **Create branch** name following convention:
-   - `fix/issue-${ISSUE_NUMBER}-<short-desc>` for type:bug
-   - `chore/issue-${ISSUE_NUMBER}-<short-desc>` for type:chore
-   - `docs/issue-${ISSUE_NUMBER}-<short-desc>` for type:docs
-   - `ci/issue-${ISSUE_NUMBER}-<short-desc>` for type:ci
-   - `test/issue-${ISSUE_NUMBER}-<short-desc>` for type:test
-   - `refactor/issue-${ISSUE_NUMBER}-<short-desc>` for type:refactor
-   - `perf/issue-${ISSUE_NUMBER}-<short-desc>` for type:perf
+   - `fix/issue-${ISSUE_NUMBER}-<short-desc>` for type:bug → prefix `fix:`
+   - `chore/issue-${ISSUE_NUMBER}-<short-desc>` for type:chore → prefix `chore:`
+   - `docs/issue-${ISSUE_NUMBER}-<short-desc>` for type:docs → prefix `docs:`
+   - `ci/issue-${ISSUE_NUMBER}-<short-desc>` for type:ci → prefix `ci:`
+   - `test/issue-${ISSUE_NUMBER}-<short-desc>` for type:test → prefix `test:`
+   - `refactor/issue-${ISSUE_NUMBER}-<short-desc>` for type:refactor → prefix `refactor:`
+   - `perf/issue-${ISSUE_NUMBER}-<short-desc>` for type:perf → prefix `perf:`
 5. **Implement**: Make the minimal changes to fix the issue
 6. **Commit**: Commit all changed files to the new branch with message: `<type>: <description> (closes #${ISSUE_NUMBER})`
 7. **Create PR**:
