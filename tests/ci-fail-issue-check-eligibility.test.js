@@ -31,12 +31,7 @@ describe('ci-fail-issue/check-eligibility', () => {
       data: { author: { login: 'some-human' } },
     });
 
-    // Default: no duplicate issue found
-    github.rest.search.issuesAndPullRequests.mockResolvedValue({
-      data: { items: [] },
-    });
-
-    // Default: no recent issues with marker
+    // Default: no recent issues (covers both Gate 4 dedup and Gate 5 daily limit)
     github.paginate.mockResolvedValue([]);
   });
 
@@ -73,16 +68,12 @@ describe('ci-fail-issue/check-eligibility', () => {
   });
 
   it('Gate 4: sets eligible=false when an existing issue matches SHA and marker', async () => {
-    github.rest.search.issuesAndPullRequests.mockResolvedValue({
-      data: {
-        items: [
-          {
-            number: 42,
-            body: `Some issue body\n${FULL_SHA}\n${MARKER}`,
-          },
-        ],
+    github.paginate.mockResolvedValue([
+      {
+        number: 42,
+        body: `Some issue body\n${FULL_SHA}\n${MARKER}`,
       },
-    });
+    ]);
 
     await run({ github, context, core });
 
@@ -91,21 +82,17 @@ describe('ci-fail-issue/check-eligibility', () => {
     expect(core.getOutput('skip_reason')).toContain('42');
   });
 
-  it('Gate 4: does not skip when search result lacks marker', async () => {
-    github.rest.search.issuesAndPullRequests.mockResolvedValue({
-      data: {
-        items: [
-          {
-            number: 99,
-            body: `Some issue body containing ${FULL_SHA} but no marker`,
-          },
-        ],
+  it('Gate 4: does not skip when recent issue lacks marker', async () => {
+    github.paginate.mockResolvedValue([
+      {
+        number: 99,
+        body: `Some issue body containing ${FULL_SHA} but no marker`,
       },
-    });
+    ]);
 
     await run({ github, context, core });
 
-    // Should proceed past Gate 4 and succeed (paginate returns [] by default)
+    // Issue has SHA but no marker — not a ci-fail issue, should proceed past Gate 4
     expect(core.getOutput('eligible')).toBe('true');
   });
 
