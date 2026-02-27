@@ -51,7 +51,7 @@ module.exports = async ({ github, context, core }) => {
     owner, repo,
     title: `fix: CI failure on main (${workflowName}, ${shortSha})`,
     body,
-    labels: ['type:ci', 'priority:high', 'ai:created'],
+    labels: ['type:ci', 'priority:high', 'size:s', 'ai:created'],
   });
 
   core.info(`Created issue #${issue.number}: ${issue.html_url}`);
