@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.5.1...v0.6.0) (2026-02-27)
+
+
+### Features
+
+* auto-enable squash merge on all PRs when opened ([#62](https://github.com/JacobPEvans/ai-workflows/issues/62)) ([f9eff8d](https://github.com/JacobPEvans/ai-workflows/commit/f9eff8d5a0676873270584e2da63f30a24d0ec65))
+* **copilot:** Copilot coding agent + post-merge CI fail issue workflow ([#60](https://github.com/JacobPEvans/ai-workflows/issues/60)) ([bfb0f91](https://github.com/JacobPEvans/ai-workflows/commit/bfb0f9147b81d8f0a377d1af037180a4d992117a))
+
 ## [0.5.1](https://github.com/JacobPEvans/ai-workflows/compare/v0.5.0...v0.5.1) (2026-02-27)
 
 
