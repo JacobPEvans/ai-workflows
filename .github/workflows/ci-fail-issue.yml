@@ -1,0 +1,88 @@
+# CI Failure Issue Creator
+#
+# Reusable workflow: called by consumer repos when CI fails on main.
+# Checks 5 safety gates, then creates a GitHub issue assigned to Copilot coding agent.
+#
+# Safety gates (in check-eligibility.js):
+#   1. conclusion == 'failure' (not cancelled/timed_out)
+#   2. commit author != copilot[bot] (loop prevention)
+#   3. commit author != github-actions[bot] (bot filter)
+#   4. no existing open issue for this commit SHA (dedup)
+#   5. < 3 ci-fail issues created in last 24h (daily limit)
+
+name: CI Fail Issue
+
+on:
+  workflow_call:
+    inputs:
+      workflow_name:
+        description: "Name of the CI workflow that failed"
+        type: string
+        required: true
+  workflow_dispatch:
+
+# Workflow-level permissions set the maximum for all jobs.
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+concurrency:
+  group: ci-fail-issue-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  should-create:
+    name: Check eligibility
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      issues: read
+    outputs:
+      eligible: ${{ steps.check.outputs.eligible }}
+      skip_reason: ${{ steps.check.outputs.skip_reason }}
+      commit_sha: ${{ steps.check.outputs.commit_sha }}
+      run_url: ${{ steps.check.outputs.run_url }}
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v6
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Check eligibility
+        id: check
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/ci-fail-issue/check-eligibility.js');
+            await run({ github, context, core });
+
+  create-issue:
+    name: Create failure issue
+    needs: should-create
+    if: needs.should-create.outputs.eligible == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      issues: write
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v6
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Create issue
+        uses: actions/github-script@v8
+        env:
+          COMMIT_SHA: ${{ needs.should-create.outputs.commit_sha }}
+          RUN_URL: ${{ needs.should-create.outputs.run_url }}
+          WORKFLOW_NAME: ${{ inputs.workflow_name }}
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/ci-fail-issue/create-failure-issue.js');
+            await run({ github, context, core });
