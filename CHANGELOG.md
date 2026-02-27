@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.1](https://github.com/JacobPEvans/ai-workflows/compare/v0.5.0...v0.5.1) (2026-02-27)
+
+
+### Bug Fixes
+
+* **claude-review:** fix self-cancellation + add review limits ([#58](https://github.com/JacobPEvans/ai-workflows/issues/58)) ([1176a7f](https://github.com/JacobPEvans/ai-workflows/commit/1176a7f6a8c1d6681d2bbf6d21b37bfbc819c241))
+
 ## [0.5.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.4.0...v0.5.0) (2026-02-26)
 
 
