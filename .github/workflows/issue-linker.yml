@@ -1,0 +1,98 @@
+# Issue Linker
+#
+# Reusable workflow: links open issues to PRs when opened, and closes resolved
+# issues when PRs merge.
+#
+# This is a reusable workflow that can be called from other repositories.
+
+name: Issue Linker
+
+on:
+  workflow_call:
+    inputs:
+      model:
+        description: "Claude model to use"
+        type: string
+        default: "claude-sonnet-4-6"
+  workflow_dispatch:
+
+# Workflow-level permissions set the maximum for all jobs.
+# permissions: {} silently skips all jobs in cross-repo calls.
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: issue-linker-${{ github.repository }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  check-eligibility:
+    name: Check eligibility
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      mode: ${{ steps.check.outputs.mode }}
+      pr_number: ${{ steps.check.outputs.pr_number }}
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v6
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Check eligibility
+        id: check
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/issue-linker/check-eligibility.js');
+            await run({ github, context, core });
+
+  link-issues:
+    name: Link or close issues
+    needs: check-eligibility
+    if: needs.check-eligibility.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      issues: write
+      pull-requests: write
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Checkout ai-workflows
+        uses: actions/checkout@v6
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: |
+            .github/prompts
+            .github/scripts
+          path: .ai-workflows
+
+      - name: Render prompt
+        id: render-prompt
+        env:
+          MODE: ${{ needs.check-eligibility.outputs.mode }}
+          PR_NUMBER: ${{ needs.check-eligibility.outputs.pr_number }}
+        run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/issue-linker.md MODE PR_NUMBER
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "github-actions"
+          model: ${{ inputs.model }}
+          prompt: ${{ steps.render-prompt.outputs.content }}
+          claude_args: >-
+            --allowedTools "Read,Glob,Grep,LS,Bash(gh pr:*),Bash(gh issue:*),Bash(gh search:*),Bash(gh api:*)"

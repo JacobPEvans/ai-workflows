@@ -307,3 +307,38 @@ jobs:
 - Daily dispatch limit (5/day) is the cost-control safety valve
 - `actions: write` + `issues: write` scoped to the dispatch job
 - Triage always runs (idempotent) — no `skip_triage` input needed
+
+---
+
+## Issue Linker Consumer Caller
+
+The `issue-linker` workflow runs when PRs are opened or merged. Consumer repos should call it with both trigger types and inline `if:` conditions:
+
+```yaml
+name: PR Issue Linker
+on:
+  pull_request:
+    types: [opened, closed]
+    branches: [main]
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+  pull-requests: write
+jobs:
+  link-issues:
+    if: >-
+      !contains(github.event.pull_request.labels.*.name, 'ai:skip-review') &&
+      (
+        (github.event.action == 'opened' && !github.event.pull_request.draft) ||
+        (github.event.action == 'closed' && github.event.pull_request.merged == true)
+      )
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-linker.yml@v0.4.0
+    secrets: inherit
+```
+
+The `if:` condition handles two trigger modes:
+- **Link mode** (`opened`): Runs when a non-draft PR is opened, linking issues and posting reviews for related issues
+- **Close mode** (`closed` + `merged`): Runs when a PR merges, closing resolved issues with a reference comment
+
+The gate script (`check-eligibility.js`) additionally skips runs when no open issues exist or when a dedup marker is already present.
