@@ -3,7 +3,9 @@ description: Daily automated link checker that finds and fixes broken links in d
 engine: copilot
 on:
   schedule: daily on weekdays
-permissions: read-all
+permissions:
+  contents: write
+  pull-requests: write
 timeout-minutes: 60
 network:
   allowed:
@@ -12,7 +14,7 @@ network:
     - github
 steps:
   - name: Checkout repository
-    uses: actions/checkout@v4
+    uses: actions/checkout@v6
     with:
       fetch-depth: 0
       persist-credentials: false
