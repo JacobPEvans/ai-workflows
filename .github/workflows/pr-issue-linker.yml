@@ -1,0 +1,20 @@
+name: PR Issue Linker
+on:
+  pull_request:
+    types: [opened, closed]
+    branches: [main]
+permissions:
+  contents: read
+  id-token: write
+  issues: write
+  pull-requests: write
+jobs:
+  link-issues:
+    if: >-
+      !contains(github.event.pull_request.labels.*.name, 'ai:skip-review') &&
+      (
+        (github.event.action == 'opened' && !github.event.pull_request.draft) ||
+        (github.event.action == 'closed' && github.event.pull_request.merged == true)
+      )
+    uses: ./.github/workflows/issue-linker.yml
+    secrets: inherit

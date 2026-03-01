@@ -35,6 +35,7 @@ function createMockGithub() {
         get: mock(),
         listComments: mock(),
         listCommentsForRepo: mock(),
+        listForRepo: mock(),
         createComment: mock(),
         addLabels: mock(),
       },
