@@ -9,6 +9,7 @@ describe('check-test-infra', () => {
     context = createMockContext();
     github = createMockGithub();
     github.rest.repos.getContent.mockRejectedValue({ status: 404 });
+    delete process.env.OVERRIDE_SHA;
   });
 
   it('sets has_tests=true when tests/ directory found', async () => {
