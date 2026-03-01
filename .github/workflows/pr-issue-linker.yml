@@ -11,6 +11,8 @@ permissions:
 jobs:
   link-issues:
     if: >-
+      github.actor != 'renovate[bot]' &&
+      github.actor != 'dependabot[bot]' &&
       !contains(github.event.pull_request.labels.*.name, 'ai:skip-review') &&
       (
         (github.event.action == 'opened' && !github.event.pull_request.draft) ||

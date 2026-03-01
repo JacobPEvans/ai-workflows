@@ -31,6 +31,9 @@ concurrency:
 jobs:
   check-eligibility:
     name: Check eligibility
+    if: >-
+      github.actor != 'renovate[bot]' &&
+      github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read

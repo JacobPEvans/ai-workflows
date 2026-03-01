@@ -195,11 +195,40 @@ Note: `actions: write` is required for `gh workflow run` to trigger the same wor
 
 ## Bot Guard Pattern
 
+Two layers of bot filtering apply, depending on workflow type.
+
+### Layer 1: Internal actor allowlist (`allowed_bots`)
+
 `claude-code-action@v1` internally rejects Bot-type `github.actor` values. All dispatch patterns (`gh workflow run` with `GITHUB_TOKEN`) set `github.actor` to `github-actions[bot]`, which would cause "Workflow initiated by non-human actor" failures.
 
-**Fix**: Every `claude-code-action@v1` step includes `allowed_bots: "github-actions"`. This is the only guard needed — cost control is handled by consumer-level daily dispatch limits, not by blocking bots at the workflow level.
+**Fix**: Every `claude-code-action@v1` step includes `allowed_bots: "github-actions"`. This allows the trusted internal dispatch actor while blocking external bots.
 
-**Why `github-actions` specifically**: The dispatch patterns use `GITHUB_TOKEN` to call `gh workflow run`, which sets the actor to `github-actions[bot]`. This is a trusted internal actor. Consumer dispatch jobs enforce daily limits before dispatching.
+### Layer 2: Dependency bot filtering (`if:` guards)
+
+PR-triggered workflows (claude-review, final-pr-review, ci-fix, issue-linker) add `if:` guards on their first job to skip runs triggered by dependency bots (Renovate, Dependabot). This produces a clean **skipped** (grey) status instead of a **failed** (red) status.
+
+```yaml
+  gate-check:
+    if: >-
+      github.actor != 'renovate[bot]' &&
+      github.actor != 'dependabot[bot]'
+```
+
+**Why at the job level**: Skipping the first job causes GitHub to show all downstream jobs as skipped too — a clean grey tree.
+
+### Layer 3: Post-merge commit-author check (JS scripts)
+
+For post-merge workflows (push→dispatch pattern), `github.actor` in the re-dispatched `workflow_dispatch` run is `github-actions[bot]` — not the original merger. The gate scripts (`check-docs-relevance.js`, `check-test-infra.js`) instead check the **commit author** via the GitHub API and early-return when it matches a dependency bot.
+
+```javascript
+const authorLogin = commit.author?.login || '';
+const depBots = ['renovate[bot]', 'dependabot[bot]'];
+if (depBots.includes(authorLogin)) {
+  core.setOutput('is_relevant', 'false');
+  core.info(`Commit authored by ${authorLogin} — skipping`);
+  return;
+}
+```
 
 ---
 

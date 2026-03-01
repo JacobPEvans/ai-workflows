@@ -26,6 +26,9 @@ concurrency:
 jobs:
   gate-check:
     name: Check review gate
+    if: >-
+      github.actor != 'renovate[bot]' &&
+      github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read

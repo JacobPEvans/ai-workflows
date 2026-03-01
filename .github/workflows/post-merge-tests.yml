@@ -46,6 +46,8 @@ jobs:
       - name: Check for test infrastructure
         id: check
         uses: actions/github-script@v8
+        env:
+          OVERRIDE_SHA: ${{ inputs.commit_sha }}
         with:
           script: |
             const run = require('./.ai-workflows/.github/scripts/post-merge-tests/check-test-infra.js');

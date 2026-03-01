@@ -42,6 +42,8 @@ jobs:
   review:
     name: Claude Code Review
     if: >-
+      github.actor != 'renovate[bot]' &&
+      github.actor != 'dependabot[bot]' &&
       github.event.pull_request != null &&
       !contains(github.event.pull_request.labels.*.name, 'ai:skip-review')
     runs-on: ubuntu-latest
