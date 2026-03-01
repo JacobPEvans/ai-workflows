@@ -195,41 +195,29 @@ Note: `actions: write` is required for `gh workflow run` to trigger the same wor
 
 ## Bot Guard Pattern
 
-Used by any workflow triggered by `issues:` events to prevent bot-created issues from causing Claude failures.
+`claude-code-action@v1` internally rejects Bot-type `github.actor` values. All dispatch patterns (`gh workflow run` with `GITHUB_TOKEN`) set `github.actor` to `github-actions[bot]`, which would cause "Workflow initiated by non-human actor" failures.
 
-**Background**: `claude-code-action@v1` internally rejects Bot-type `github.actor` values. This affects ALL dispatch patterns (AI Dispatch, Post-Merge Dispatch, schedule triggers) because `gh workflow run` with `GITHUB_TOKEN` sets `github.actor` to `github-actions[bot]`.
+**Fix**: Every `claude-code-action@v1` step includes `allowed_bots: "github-actions"`. This is the only guard needed — cost control is handled by consumer-level daily dispatch limits, not by blocking bots at the workflow level.
 
-**Two-layer defense**:
-
-1. **`allowed_bots: "github-actions"`** — Required on every `claude-code-action@v1` step. Without this, any workflow called via dispatch or schedule will fail with "Workflow initiated by non-human actor." This is the primary fix.
-
-2. **Job-level `if:` guard** — Secondary filter on the reusable workflow job to block direct bot-triggered calls without an explicit issue number:
-
-```yaml
-jobs:
-  triage:
-    if: (inputs.issue_number || '0') != '0' || github.event.sender.type != 'Bot'
-```
-
-**Required on**: All `claude-code-action@v1` steps (for `allowed_bots`), plus issue-triage (for the job guard).
-
-**Why `github-actions` specifically**: The dispatch patterns use `GITHUB_TOKEN` to call `gh workflow run`, which sets the actor to `github-actions[bot]`. This is a trusted internal actor — not external bot spam. The consumer's dispatch job already filters untrusted bots before dispatching.
+**Why `github-actions` specifically**: The dispatch patterns use `GITHUB_TOKEN` to call `gh workflow run`, which sets the actor to `github-actions[bot]`. This is a trusted internal actor. Consumer dispatch jobs enforce daily limits before dispatching.
 
 ---
 
 ## AI Dispatch Pattern
 
-Used by consumer `issue-auto-resolve.yml` callers to allow AI-created issues (tagged `ai:created`) to flow through the triage + resolve pipeline while blocking random bot spam.
+Used by consumer `issue-auto-resolve.yml` callers to dispatch issues through the triage + resolve pipeline. All actors (human and bot) are welcome — cost control is via daily dispatch limits, not bot filtering.
 
-**Why**: `claude-code-action@v1` rejects Bot-type `github.actor` values internally. Re-dispatching as `workflow_dispatch` changes the event type but sets `github.actor` to `github-actions[bot]`. The reusable workflows must include `allowed_bots: "github-actions"` on every `claude-code-action@v1` step to allow this actor through.
+**Triggers**:
+- `issues: opened` — new issues auto-dispatch
+- `issues: labeled` with `ai:ready` — re-trigger mechanism for existing issues
 
 **Flow**:
 ```
-issues:opened → dispatch job → workflow_dispatch → [triage if human] → resolve
-                 ↑ filters:
-                 - human issues: dispatch with skip_triage=false
-                 - ai:created bot issues: dispatch with skip_triage=true
-                 - other bot issues: exit (no dispatch)
+issues:opened  → dispatch job → workflow_dispatch → triage → resolve
+issues:labeled → (ai:ready?)  → workflow_dispatch → triage → resolve
+                   ↑ safety:
+                   - daily dispatch limit (default: 5/day)
+                   - ai:ready label removed after dispatch (re-apply to re-trigger)
 ```
 
 **Consumer caller** (three-job unified pattern):
@@ -237,15 +225,12 @@ issues:opened → dispatch job → workflow_dispatch → [triage if human] → r
 name: Issue Auto-Resolve
 on:
   issues:
-    types: [opened]
+    types: [opened, labeled]
   workflow_dispatch:
     inputs:
       issue_number:
         required: true
         type: string
-      skip_triage:
-        type: string
-        default: "false"
 permissions:
   actions: write
   contents: write
@@ -258,30 +243,47 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       actions: write
+      issues: write
     steps:
       - name: Dispatch as workflow_dispatch
         env:
           GH_TOKEN: ${{ github.token }}
           WORKFLOW_NAME: ${{ github.workflow }}
+          REPO: ${{ github.repository }}
           ISSUE_NUM: ${{ github.event.issue.number }}
-          IS_BOT: ${{ github.event.sender.type == 'Bot' }}
-          HAS_AI_LABEL: ${{ contains(github.event.issue.labels.*.name, 'ai:created') }}
+          EVENT_ACTION: ${{ github.event.action }}
+          LABEL_NAME: ${{ github.event.label.name }}
         run: |
-          if [[ "$IS_BOT" == "true" && "$HAS_AI_LABEL" != "true" ]]; then
-            echo "Bot issue without ai:created label — skipping"
+          # Filter labeled events to only ai:ready
+          if [[ "$EVENT_ACTION" == "labeled" && "$LABEL_NAME" != "ai:ready" ]]; then
+            echo "Label '$LABEL_NAME' is not ai:ready — skipping"
             exit 0
           fi
-          SKIP="false"
-          if [[ "$IS_BOT" == "true" ]]; then SKIP="true"; fi
+
+          # Daily dispatch limit (cost control safety valve)
+          TODAY=$(date -u +%Y-%m-%d)
+          COUNT=$(gh run list \
+            --workflow "$WORKFLOW_NAME" \
+            --repo "$REPO" \
+            --event workflow_dispatch \
+            --created ">=$TODAY" \
+            --json databaseId --jq 'length')
+          if [[ "$COUNT" -ge 5 ]]; then
+            echo "Daily dispatch limit reached ($COUNT/5) — skipping"
+            exit 0
+          fi
+
+          # Remove ai:ready label so it can be re-applied to re-trigger
+          if [[ "$EVENT_ACTION" == "labeled" && "$LABEL_NAME" == "ai:ready" ]]; then
+            gh issue edit "$ISSUE_NUM" --repo "$REPO" --remove-label "ai:ready" || true
+          fi
+
           gh workflow run "$WORKFLOW_NAME" \
-            --repo "$GITHUB_REPOSITORY" \
-            -f issue_number="$ISSUE_NUM" \
-            -f skip_triage="$SKIP"
+            --repo "$REPO" \
+            -f issue_number="$ISSUE_NUM"
   run-triage:
-    if: >-
-      github.event_name == 'workflow_dispatch' &&
-      inputs.skip_triage != 'true'
-    uses: JacobPEvans/ai-workflows/.github/workflows/issue-triage.yml@v0.4.0
+    if: github.event_name == 'workflow_dispatch'
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-triage.yml@<version>
     secrets: inherit
     with:
       issue_number: ${{ inputs.issue_number }}
@@ -291,7 +293,7 @@ jobs:
       always() &&
       github.event_name == 'workflow_dispatch' &&
       (needs.run-triage.result == 'success' || needs.run-triage.result == 'skipped')
-    uses: JacobPEvans/ai-workflows/.github/workflows/issue-resolver.yml@v0.4.0
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-resolver.yml@<version>
     secrets: inherit
     with:
       repo_context: "<repo-specific>"
@@ -299,8 +301,9 @@ jobs:
 ```
 
 **Key points**:
-- `WORKFLOW_NAME` passed via `env:` (not inline `${{ github.workflow }}`) to prevent template injection
+- `WORKFLOW_NAME` and `REPO` passed via `env:` (not inline `${{ }}`) to prevent template injection
 - `always()` on `resolve-issue` ensures it runs even when `run-triage` was skipped
-- `ai:created` label is the trust signal for bot issues (applied by `next-steps.yml`)
-- `actions: write` scoped to the dispatch job only
-- Daily resolver limit enforced by Gate 10 in `check-eligibility.js` (default: 5/24h)
+- `ai:ready` label is the re-trigger mechanism — removed after dispatch so it can be re-applied
+- Daily dispatch limit (5/day) is the cost-control safety valve
+- `actions: write` + `issues: write` scoped to the dispatch job
+- Triage always runs (idempotent) — no `skip_triage` input needed
