@@ -34,7 +34,7 @@ This repo is the single source of truth for CI/CD automation workflows. Each wor
 
 **Supported event types**: `issues`, `issue_comment`, `pull_request`, `pull_request_review`, `pull_request_review_comment`, `workflow_dispatch`, `repository_dispatch`, `schedule`, `workflow_run`. `push` is NOT supported — post-merge workflows use the dispatch pattern (see `docs/PATTERNS.md`).
 
-**Bot guard**: `claude-code-action@v1` rejects Bot-type senders for `issues:` events internally. Consumer callers use the AI Dispatch Pattern: all `issues:opened` events dispatch as `workflow_dispatch`, selectively routing AI-created issues (`ai:created` label) with `skip_triage=true`. The reusable `issue-triage.yml` guards direct bot calls via input check: `if: (inputs.issue_number || '0') != '0' || github.event.sender.type != 'Bot'`. See `docs/PATTERNS.md` for the full AI Dispatch Pattern.
+**Bot guard**: `claude-code-action@v1` rejects Bot-type `github.actor` values. All dispatch patterns (AI Dispatch, Post-Merge Dispatch, schedule) set `github.actor` to `github-actions[bot]`, so every `claude-code-action@v1` step MUST include `allowed_bots: "github-actions"`. Consumer callers use the AI Dispatch Pattern for issue workflows. See `docs/PATTERNS.md` for the full Bot Guard and AI Dispatch patterns.
 
 ### Consumer Repo Caller Pattern
 
