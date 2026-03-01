@@ -40,4 +40,20 @@ describe('check-docs-relevance', () => {
     await run({ github, context, core });
     expect(core.getOutput('is_relevant')).toBe('false');
   });
+
+  it('sets is_relevant=false for renovate[bot] authored commits', async () => {
+    github.rest.repos.getCommit.mockResolvedValue({
+      data: { author: { login: 'renovate[bot]' }, files: [{ filename: 'README.md' }] },
+    });
+    await run({ github, context, core });
+    expect(core.getOutput('is_relevant')).toBe('false');
+  });
+
+  it('sets is_relevant=false for dependabot[bot] authored commits', async () => {
+    github.rest.repos.getCommit.mockResolvedValue({
+      data: { author: { login: 'dependabot[bot]' }, files: [{ filename: 'src/main.js' }] },
+    });
+    await run({ github, context, core });
+    expect(core.getOutput('is_relevant')).toBe('false');
+  });
 });
