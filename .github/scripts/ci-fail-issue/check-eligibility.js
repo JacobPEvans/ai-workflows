@@ -23,7 +23,7 @@ module.exports = async ({ github, context, core }) => {
     core.info(`Could not get commit author: ${e.message}`);
   }
 
-  const botAuthors = ['copilot[bot]', 'github-actions[bot]'];
+  const botAuthors = ['copilot[bot]', 'github-actions[bot]', 'renovate[bot]', 'dependabot[bot]'];
   if (botAuthors.includes(authorLogin)) {
     core.info(`Gate 2/3: commit authored by ${authorLogin} — skipping to prevent loop`);
     core.setOutput('eligible', 'false');

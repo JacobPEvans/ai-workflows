@@ -41,6 +41,9 @@ concurrency:
 jobs:
   should-fix:
     name: Check if fix needed
+    if: >-
+      github.actor != 'renovate[bot]' &&
+      github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read

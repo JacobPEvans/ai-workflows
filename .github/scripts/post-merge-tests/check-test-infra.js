@@ -2,6 +2,21 @@ module.exports = async ({ github, context, core }) => {
   const owner = context.repo.owner;
   const repo = context.repo.repo;
 
+  // Skip commits authored by dependency bots
+  const sha = process.env.OVERRIDE_SHA || context.sha;
+  try {
+    const { data: commitData } = await github.rest.repos.getCommit({ owner, repo, ref: sha });
+    const authorLogin = commitData.author?.login || '';
+    const depBots = ['renovate[bot]', 'dependabot[bot]'];
+    if (depBots.includes(authorLogin)) {
+      core.setOutput('has_tests', 'false');
+      core.info(`Commit authored by ${authorLogin} — skipping test review`);
+      return;
+    }
+  } catch (e) {
+    core.info(`Could not check commit author: ${e.message}`);
+  }
+
   const testIndicators = [
     'tests/', 'test/', '__tests__/', 'spec/',
     'jest.config.js', 'jest.config.ts', 'jest.config.mjs',

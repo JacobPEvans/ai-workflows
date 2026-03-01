@@ -10,6 +10,15 @@ module.exports = async ({ github, context, core }) => {
     ref: sha,
   });
 
+  // Skip commits authored by dependency bots
+  const authorLogin = commit.author?.login || '';
+  const depBots = ['renovate[bot]', 'dependabot[bot]'];
+  if (depBots.includes(authorLogin)) {
+    core.setOutput('is_relevant', 'false');
+    core.info(`Commit authored by ${authorLogin} — skipping doc review`);
+    return;
+  }
+
   const files = commit.files || [];
   if (files.length === 0) {
     core.setOutput('is_relevant', 'false');
