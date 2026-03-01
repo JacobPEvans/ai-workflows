@@ -15,7 +15,7 @@ Used by most workflows. Static prompt, read-only tools.
 - `id-token: write` at both workflow-level and job-level permissions
 - Cross-repo checkout of `.github/prompts` and `.github/scripts`
 - `render-prompt.sh` to render the static prompt into a step output
-- `claude-code-action@v1` with `claude_code_oauth_token:` and `prompt:`
+- `claude-code-action@v1` with `claude_code_oauth_token:`, `allowed_bots:`, and `prompt:`
 
 ```yaml
 - name: Render prompt
@@ -26,6 +26,7 @@ Used by most workflows. Static prompt, read-only tools.
   uses: anthropics/claude-code-action@v1
   with:
     claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+    allowed_bots: "github-actions"
     prompt: ${{ steps.prompt.outputs.content }}
     claude_args: >-
       --allowedTools "Read,Glob,Grep,LS,Bash(gh issue:*)"
@@ -48,6 +49,7 @@ Used by workflows that create commits or PRs. Adds `use_commit_signing: "true"` 
   uses: anthropics/claude-code-action@v1
   with:
     claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+    allowed_bots: "github-actions"
     use_commit_signing: "true"
     prompt: ${{ steps.prompt.outputs.content }}
     claude_args: >-
@@ -195,11 +197,13 @@ Note: `actions: write` is required for `gh workflow run` to trigger the same wor
 
 Used by any workflow triggered by `issues:` events to prevent bot-created issues from causing Claude failures.
 
-**Background**: `claude-code-action@v1` internally rejects Bot-type senders for `issues:` events. A simple `if:` condition on the job is insufficient — the action itself fails. The solution is the AI Dispatch Pattern (see below), which re-triggers bot-created issues as `workflow_dispatch`.
+**Background**: `claude-code-action@v1` internally rejects Bot-type `github.actor` values. This affects ALL dispatch patterns (AI Dispatch, Post-Merge Dispatch, schedule triggers) because `gh workflow run` with `GITHUB_TOKEN` sets `github.actor` to `github-actions[bot]`.
 
-**Required on**: issue-triage (reusable workflow job guard)
+**Two-layer defense**:
 
-The reusable `issue-triage.yml` guards against direct bot-triggered calls:
+1. **`allowed_bots: "github-actions"`** — Required on every `claude-code-action@v1` step. Without this, any workflow called via dispatch or schedule will fail with "Workflow initiated by non-human actor." This is the primary fix.
+
+2. **Job-level `if:` guard** — Secondary filter on the reusable workflow job to block direct bot-triggered calls without an explicit issue number:
 
 ```yaml
 jobs:
@@ -207,7 +211,9 @@ jobs:
     if: (inputs.issue_number || '0') != '0' || github.event.sender.type != 'Bot'
 ```
 
-This passes when an `issue_number` is explicitly provided (dispatch pattern) OR when the sender is human. Blocks only direct bot-triggered calls without an issue number.
+**Required on**: All `claude-code-action@v1` steps (for `allowed_bots`), plus issue-triage (for the job guard).
+
+**Why `github-actions` specifically**: The dispatch patterns use `GITHUB_TOKEN` to call `gh workflow run`, which sets the actor to `github-actions[bot]`. This is a trusted internal actor — not external bot spam. The consumer's dispatch job already filters untrusted bots before dispatching.
 
 ---
 
@@ -215,7 +221,7 @@ This passes when an `issue_number` is explicitly provided (dispatch pattern) OR 
 
 Used by consumer `issue-auto-resolve.yml` callers to allow AI-created issues (tagged `ai:created`) to flow through the triage + resolve pipeline while blocking random bot spam.
 
-**Why**: `claude-code-action@v1` rejects Bot-type senders internally. Re-dispatching as `workflow_dispatch` bypasses this restriction.
+**Why**: `claude-code-action@v1` rejects Bot-type `github.actor` values internally. Re-dispatching as `workflow_dispatch` changes the event type but sets `github.actor` to `github-actions[bot]`. The reusable workflows must include `allowed_bots: "github-actions"` on every `claude-code-action@v1` step to allow this actor through.
 
 **Flow**:
 ```
