@@ -44,4 +44,33 @@ describe('check-test-infra', () => {
     await run({ github, context, core });
     expect(core.getOutput('has_tests')).toBe('false');
   });
+
+  it('sets has_tests=false for renovate[bot] authored commits', async () => {
+    github.rest.repos.getCommit.mockResolvedValue({
+      data: { author: { login: 'renovate[bot]' } },
+    });
+    await run({ github, context, core });
+    expect(core.getOutput('has_tests')).toBe('false');
+  });
+
+  it('sets has_tests=false for dependabot[bot] authored commits', async () => {
+    github.rest.repos.getCommit.mockResolvedValue({
+      data: { author: { login: 'dependabot[bot]' } },
+    });
+    await run({ github, context, core });
+    expect(core.getOutput('has_tests')).toBe('false');
+  });
+
+  it('uses OVERRIDE_SHA for commit author lookup', async () => {
+    process.env.OVERRIDE_SHA = 'override-sha-123';
+    github.rest.repos.getCommit.mockResolvedValue({
+      data: { author: { login: 'renovate[bot]' } },
+    });
+    await run({ github, context, core });
+    expect(github.rest.repos.getCommit).toHaveBeenCalledWith(
+      expect.objectContaining({ ref: 'override-sha-123' })
+    );
+    expect(core.getOutput('has_tests')).toBe('false');
+    delete process.env.OVERRIDE_SHA;
+  });
 });

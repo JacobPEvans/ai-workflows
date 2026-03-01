@@ -195,7 +195,7 @@ Note: `actions: write` is required for `gh workflow run` to trigger the same wor
 
 ## Bot Guard Pattern
 
-Two layers of bot filtering apply, depending on workflow type.
+Three layers of bot filtering apply, depending on workflow type.
 
 ### Layer 1: Internal actor allowlist (`allowed_bots`)
 
@@ -205,7 +205,7 @@ Two layers of bot filtering apply, depending on workflow type.
 
 ### Layer 2: Dependency bot filtering (`if:` guards)
 
-PR-triggered workflows (claude-review, final-pr-review, ci-fix, issue-linker) add `if:` guards on their first job to skip runs triggered by dependency bots (Renovate, Dependabot). This produces a clean **skipped** (grey) status instead of a **failed** (red) status.
+PR-triggered workflows (claude-review, final-pr-review, ci-fix, issue-linker, pr-issue-linker) add `if:` guards on their first job to skip runs triggered by dependency bots (Renovate, Dependabot). This produces a clean **skipped** (grey) status instead of a **failed** (red) status.
 
 ```yaml
   gate-check:
