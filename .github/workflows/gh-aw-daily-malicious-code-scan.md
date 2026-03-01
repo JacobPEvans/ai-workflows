@@ -7,14 +7,14 @@ on:
 permissions:
   contents: read
   actions: read
-  security-events: read
+  security-events: write
 tracker-id: malicious-code-scan
 tools:
   github:
     toolsets: [repos, code_security]
   bash: true
 safe-outputs:
-  create-code-scanning-alert:
+  create_code_scanning_alert:
     driver: "Malicious Code Scanner"
   threat-detection: false
 timeout-minutes: 15
@@ -134,7 +134,7 @@ For each file that changed in the last 3 days:
 
 1. **Get the full diff** to understand what changed:
    ```bash
-   git log --since="3 days ago" --all -p -- $(cat /tmp/changed_files.txt | tr '\n' ' ') 2>/dev/null | head -2000
+   git log --since="3 days ago" --all -p --pathspec-from-file=/tmp/changed_files.txt 2>/dev/null | head -2000
    ```
 
 2. **Analyze new function additions** for suspicious logic:

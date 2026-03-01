@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  issues: read
+  issues: write
 strict: true
 network:
   allowed:
@@ -17,11 +17,12 @@ tools:
     toolsets:
       - issues
 safe-outputs:
-  update-issue:
-    status:
+  update_issue:
+    state:
+    state_reason:
     target: "*"
     max: 20
-  add-comment:
+  add_comment:
     target: "*"
     max: 20
 timeout-minutes: 15
