@@ -33,6 +33,10 @@ on:
         description: "Claude model to use"
         type: string
         default: "claude-sonnet-4-6"
+      allowed_bots:
+        description: "Comma-separated bot logins allowed to trigger review (supports *)"
+        type: string
+        default: ""
 
 # Workflow-level permissions set the maximum for all jobs.
 # permissions: {} silently skips all jobs in cross-repo calls.
@@ -54,6 +58,7 @@ jobs:
       review_prompt: ${{ inputs.review_prompt }}
       max_reviews: ${{ inputs.max_reviews }}
       model: ${{ inputs.model }}
+      allowed_bots: ${{ inputs.allowed_bots }}
     secrets: inherit
 
   final-pr-review:
@@ -61,4 +66,6 @@ jobs:
       inputs.caller_event == 'pull_request_review' ||
       inputs.caller_event == 'check_suite'
     uses: ./.github/workflows/final-pr-review.yml
+    with:
+      allowed_bots: ${{ inputs.allowed_bots }}
     secrets: inherit
