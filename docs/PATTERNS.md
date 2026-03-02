@@ -195,7 +195,7 @@ Note: `actions: write` is required for `gh workflow run` to trigger the same wor
 
 ## Bot Guard Pattern
 
-Three layers of bot filtering apply, depending on workflow type.
+Four layers of bot filtering apply, depending on workflow type.
 
 ### Layer 1: Internal actor allowlist (`allowed_bots`)
 
@@ -203,7 +203,43 @@ Three layers of bot filtering apply, depending on workflow type.
 
 **Fix**: Every `claude-code-action@v1` step includes `allowed_bots: "github-actions"`. This allows the trusted internal dispatch actor while blocking external bots.
 
-### Layer 2: Dependency bot filtering (`if:` guards)
+### Layer 2: PR author pre-check (`if:` on action steps)
+
+When a bot creates a PR (e.g., the `claude` GitHub App), `claude-code-action@v1`'s built-in bot guard hard-fails the step — producing a red CI failure. The fix: add an `if:` condition directly on the `claude-code-action` step (and any steps that depend on its output) to check the PR author type *before* the action runs.
+
+```yaml
+      - name: Run Claude Code Review
+        if: >-
+          steps.eligibility.outputs.eligible == 'true' &&
+          (
+            github.event.pull_request.user.type != 'Bot' ||
+            contains(inputs.allowed_bots, github.event.pull_request.user.login) ||
+            contains(inputs.allowed_bots, '*')
+          )
+        uses: anthropics/claude-code-action@v1
+```
+
+When a bot creates the PR and isn't in `allowed_bots`, the step shows as **skipped** (grey) — not failed (red). CI stays green.
+
+**Behavior by event type**:
+- `pull_request` events: `github.event.pull_request.user.type` is set — bot guard applies
+- `issue_comment` events (interactive job): `github.event.pull_request` is null → `'' != 'Bot'` → true — always runs
+- `workflow_run` events (ci-fix): `github.event.pull_request` is null → always runs
+
+**Consumer configuration**: PR-triggered workflows (`claude-review`, `final-pr-review`, `issue-linker`) and suites (`suite-pr`, `suite-all`) accept an `allowed_bots` input:
+
+```yaml
+jobs:
+  sweep:
+    uses: JacobPEvans/ai-workflows/.github/workflows/suite-all.yml@v0.9.0
+    with:
+      caller_event: ${{ github.event_name }}
+      allowed_bots: "claude"  # Allow Claude App PRs to be reviewed
+```
+
+Supports comma-separated logins or `*` to allow all bots.
+
+### Layer 3: Dependency bot filtering (`if:` guards)
 
 PR-triggered workflows (claude-review, final-pr-review, ci-fix, issue-linker, pr-issue-linker) add `if:` guards on their first job to skip runs triggered by dependency bots (Renovate, Dependabot). This produces a clean **skipped** (grey) status instead of a **failed** (red) status.
 
@@ -216,7 +252,7 @@ PR-triggered workflows (claude-review, final-pr-review, ci-fix, issue-linker, pr
 
 **Why at the job level**: Skipping the first job causes GitHub to show all downstream jobs as skipped too — a clean grey tree.
 
-### Layer 3: Post-merge commit-author check (JS scripts)
+### Layer 4: Post-merge commit-author check (JS scripts)
 
 For post-merge workflows (push→dispatch pattern), `github.actor` in the re-dispatched `workflow_dispatch` run is `github-actions[bot]` — not the original merger. The gate scripts (`check-docs-relevance.js`, `check-test-infra.js`) instead check the **commit author** via the GitHub API and early-return when it matches a dependency bot.
 

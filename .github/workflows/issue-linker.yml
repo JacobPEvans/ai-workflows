@@ -14,6 +14,10 @@ on:
         description: "Claude model to use"
         type: string
         default: "claude-sonnet-4-6"
+      allowed_bots:
+        description: "Comma-separated bot logins allowed to trigger review (supports *)"
+        type: string
+        default: ""
   workflow_dispatch:
 
 # Workflow-level permissions set the maximum for all jobs.
@@ -91,6 +95,10 @@ jobs:
         run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/issue-linker.md MODE PR_NUMBER
 
       - name: Run Claude Code
+        if: >-
+          github.event.pull_request.user.type != 'Bot' ||
+          contains(inputs.allowed_bots, github.event.pull_request.user.login) ||
+          contains(inputs.allowed_bots, '*')
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

@@ -43,6 +43,10 @@ on:
         description: "Commit SHA for post-merge reviews (from workflow_dispatch)"
         type: string
         default: ""
+      allowed_bots:
+        description: "Comma-separated bot logins allowed to trigger review (supports *)"
+        type: string
+        default: ""
 
 # Workflow-level permissions set the maximum for all jobs.
 # permissions: {} silently skips all jobs in cross-repo calls.
@@ -68,6 +72,7 @@ jobs:
       review_prompt: ${{ inputs.review_prompt }}
       max_reviews: ${{ inputs.max_reviews }}
       model: ${{ inputs.model }}
+      allowed_bots: ${{ inputs.allowed_bots }}
     secrets: inherit
 
   # workflow_dispatch → Post-Merge Suite (docs-review + tests-review)
