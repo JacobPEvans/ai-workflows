@@ -6,7 +6,7 @@
 # repo-specific trigger configuration.
 #
 # Nesting: caller → suite-all → suite-pr/suite-post-merge → individual workflow
-# = 3 levels (well within the 10-level GitHub Actions limit).
+# = 3 levels (well within the 4-level GitHub Actions limit).
 #
 # Internal uses: paths are relative — they resolve to the same ref as this
 # suite when called by a child repo (e.g., @v0.8.0 pins the whole chain).
@@ -47,6 +47,7 @@ on:
         description: "Comma-separated bot logins allowed to trigger review (supports *)"
         type: string
         default: ""
+  workflow_dispatch:
 
 # Workflow-level permissions set the maximum for all jobs.
 # permissions: {} silently skips all jobs in cross-repo calls.
