@@ -1,4 +1,4 @@
-const { mock, beforeEach, describe, it, expect } = require('bun:test');
+const { mock, beforeEach, afterEach, describe, it, expect } = require('bun:test');
 const { createMockCore, createMockContext, createMockGithub } = require('./helpers.js');
 
 // Store reference to the mock fetch for assertions
@@ -9,6 +9,10 @@ const originalFetch = global.fetch;
 
 describe('send-slack-pr-notify', () => {
   let core, context, github;
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
 
   beforeEach(() => {
     core = createMockCore();
