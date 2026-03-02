@@ -36,6 +36,7 @@ on:
         description: "Additional allowed tools beyond defaults (e.g., Bash(tofu:*))"
         type: string
         default: ""
+  workflow_dispatch:
 
 # Workflow-level permissions set the maximum for all jobs.
 # permissions: {} silently skips all jobs in cross-repo calls.
