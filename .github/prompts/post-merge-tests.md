@@ -35,6 +35,12 @@ If you find uncovered testable code:
 3. Create a PR with:
    - Title: `test: add coverage for <what was merged>`
    - Body explaining: what merge triggered this, what's being tested, what existing patterns were followed
+4. Include this provenance footer at the bottom of the PR body:
+
+   ```
+   ---
+   > **AI Provenance** | Workflow: `${WORKFLOW_NAME}` | [Run ${RUN_ID}](${RUN_URL}) | Event: `${EVENT_NAME}` | Actor: `${TRIGGER_ACTOR}`
+   ```
 
 ## Rules
 

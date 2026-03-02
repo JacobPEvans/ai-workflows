@@ -407,3 +407,64 @@ The `if:` condition handles two trigger modes:
 - **Close mode** (`closed` + `merged`): Runs when a PR merges, closing resolved issues with a reference comment
 
 The gate script (`check-eligibility.js`) additionally skips runs when no open issues exist or when a dedup marker is already present.
+
+---
+
+## AI Provenance Pattern
+
+All PR-creating workflows attach a standardized provenance footer to every PR body so AI-created PRs are fully self-documenting.
+
+**Workflows**: code-simplifier, next-steps, post-merge-docs-review, post-merge-tests, issue-resolver
+**Variant**: ci-fix appends provenance to the commit message instead of PR body
+
+**How it works**: Five env vars are passed to `render-prompt.sh` on the render step. The prompt template includes a footer instruction using `${VAR}` placeholders, which `envsubst` expands at render time.
+
+**Env vars added to render steps**:
+```yaml
+env:
+  WORKFLOW_NAME: ${{ github.workflow }}
+  RUN_ID: ${{ github.run_id }}
+  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  EVENT_NAME: ${{ github.event_name }}
+  TRIGGER_ACTOR: ${{ github.triggering_actor }}
+```
+
+**Footer format** (appended to PR body):
+```
+---
+> **AI Provenance** | Workflow: `${WORKFLOW_NAME}` | [Run ${RUN_ID}](${RUN_URL}) | Event: `${EVENT_NAME}` | Actor: `${TRIGGER_ACTOR}`
+```
+
+**Why prompt-based** (not a post-step): `claude-code-action@v1` doesn't expose a PR number output, making post-creation API appends fragile. The prompt approach fits the existing `render-prompt.sh` + `envsubst` pattern with no additional steps.
+
+---
+
+## Slack Notification Pattern
+
+Consumer repos receive real-time Slack alerts in `#github-automation` when Claude opens a PR.
+
+**Workflow**: `notify-ai-pr.yml` (reusable)
+**Filter**: Only fires for PRs authored by `claude[bot]`
+
+**Consumer caller** (added to each repo):
+```yaml
+name: AI PR Notification
+on:
+  pull_request:
+    types: [opened]
+permissions:
+  pull-requests: read
+jobs:
+  notify:
+    uses: JacobPEvans/ai-workflows/.github/workflows/notify-ai-pr.yml@v0.4.0
+    secrets: inherit
+```
+
+**Required secret**: `SLACK_WEBHOOK_URL` (Slack Incoming Webhook URL for `#github-automation`)
+
+**Message content** (Slack Block Kit):
+- Header: "AI-Created PR Opened"
+- PR title + link
+- Provenance fields: Workflow, Event, Actor, Run link (extracted from PR body footer)
+
+**Implementation**: Extracted script at `.github/scripts/notification/send-slack-pr-notify.js`. Parses the AI Provenance footer from the PR body using regex to populate the Slack message fields.

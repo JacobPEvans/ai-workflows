@@ -51,6 +51,12 @@ If the fix is straightforward (< 50 lines changed, <= 3 files):
 - Create a PR with the fix
 - Title format: `chore: [description of next step]`
 - Body must explain: what was detected, why this is the logical next step, what changed
+- PR body must include this provenance footer at the bottom:
+
+  ```
+  ---
+  > **AI Provenance** | Workflow: `${WORKFLOW_NAME}` | [Run ${RUN_ID}](${RUN_URL}) | Event: `${EVENT_NAME}` | Actor: `${TRIGGER_ACTOR}`
+  ```
 
 ### Option B: Issue (for complex work)
 
