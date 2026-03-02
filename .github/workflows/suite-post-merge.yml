@@ -1,0 +1,43 @@
+# Suite: Post-Merge Reviews
+#
+# Reusable workflow: bundles post-merge-docs-review + post-merge-tests.
+# Both run in parallel after a merge to main (triggered via workflow_dispatch re-dispatch).
+#
+# Internal uses: paths are relative — they resolve to the same ref as this
+# suite when called by a child repo (e.g., @v0.8.0 pins the whole chain).
+#
+# Usage:
+#   uses: JacobPEvans/ai-workflows/.github/workflows/suite-post-merge.yml@v0.8.0
+#   with:
+#     commit_sha: ${{ inputs.commit_sha || github.sha }}
+
+name: "Suite: Post-Merge Reviews"
+
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        description: "Commit SHA to review (pass inputs.commit_sha from workflow_dispatch)"
+        type: string
+        required: false
+        default: ""
+
+# Workflow-level permissions set the maximum for all jobs.
+# permissions: {} silently skips all jobs in cross-repo calls.
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+
+jobs:
+  docs-review:
+    uses: ./.github/workflows/post-merge-docs-review.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+    secrets: inherit
+
+  tests-review:
+    uses: ./.github/workflows/post-merge-tests.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+    secrets: inherit
