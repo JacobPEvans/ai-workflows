@@ -9,19 +9,18 @@ module.exports = async ({ github, context, core }) => {
   const prBody = process.env.PR_BODY || '';
   const repoName = process.env.REPO_NAME;
 
+  if (!webhookUrl) {
+    core.setFailed('SLACK_WEBHOOK_URL environment variable is not set');
+    return;
+  }
+
   // Parse provenance footer: > **AI Provenance** | Workflow: `name` | [Run id](url) | Event: `name` | Actor: `name`
-  const workflowMatch = prBody.match(/Workflow: `([^`]+)`/);
-  const workflow = workflowMatch ? workflowMatch[1] : 'unknown';
-
-  const runMatch = prBody.match(/\[Run (\d+)\]\(([^)]+)\)/);
-  const runId = runMatch ? runMatch[1] : null;
-  const runUrl = runMatch ? runMatch[2] : null;
-
-  const eventMatch = prBody.match(/Event: `([^`]+)`/);
-  const event = eventMatch ? eventMatch[1] : 'unknown';
-
-  const actorMatch = prBody.match(/Actor: `([^`]+)`/);
-  const actor = actorMatch ? actorMatch[1] : 'unknown';
+  const provenanceMatch = prBody.match(/> \*\*AI Provenance\*\*.*\| Workflow: `(?<workflow>[^`]+)`.*\| \[Run (?<runId>\d+)\]\((?<runUrl>[^)]+)\).*\| Event: `(?<event>[^`]+)`.*\| Actor: `(?<actor>[^`]+)`/);
+  const workflow = provenanceMatch?.groups?.workflow || 'unknown';
+  const runId = provenanceMatch?.groups?.runId || null;
+  const runUrl = provenanceMatch?.groups?.runUrl || null;
+  const event = provenanceMatch?.groups?.event || 'unknown';
+  const actor = provenanceMatch?.groups?.actor || 'unknown';
 
   const blocks = [
     {
@@ -49,11 +48,17 @@ module.exports = async ({ github, context, core }) => {
     },
   ];
 
-  const response = await fetch(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ blocks }),
-  });
+  let response;
+  try {
+    response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blocks }),
+    });
+  } catch (error) {
+    core.setFailed(`Slack webhook request threw an error: ${error instanceof Error ? error.message : String(error)}`);
+    return;
+  }
 
   if (!response.ok) {
     core.setFailed(`Slack webhook failed: ${response.status} ${response.statusText}`);

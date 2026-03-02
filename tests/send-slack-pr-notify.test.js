@@ -113,4 +113,38 @@ describe('send-slack-pr-notify', () => {
     expect(core.failures).toHaveLength(1);
     expect(core.failures[0]).toContain('500');
   });
+
+  it('calls setFailed when SLACK_WEBHOOK_URL is not set', async () => {
+    // SLACK_WEBHOOK_URL intentionally not set
+    process.env.PR_TITLE = 'fix: something';
+    process.env.PR_URL = 'https://github.com/owner/repo/pull/1';
+    process.env.PR_NUMBER = '1';
+    process.env.REPO_NAME = 'owner/repo';
+    process.env.PR_BODY = '';
+
+    const run = require('../.github/scripts/notification/send-slack-pr-notify.js');
+    await run({ github, context, core });
+
+    expect(core.failures).toHaveLength(1);
+    expect(core.failures[0]).toContain('SLACK_WEBHOOK_URL');
+    expect(mockFetch).not.toHaveBeenCalled();
+  });
+
+  it('calls setFailed when fetch throws a network error', async () => {
+    process.env.SLACK_WEBHOOK_URL = 'https://hooks.slack.com/test';
+    process.env.PR_TITLE = 'fix: something';
+    process.env.PR_URL = 'https://github.com/owner/repo/pull/1';
+    process.env.PR_NUMBER = '1';
+    process.env.REPO_NAME = 'owner/repo';
+    process.env.PR_BODY = '';
+
+    mockFetch = mock(() => Promise.reject(new Error('Network connection refused')));
+    global.fetch = mockFetch;
+
+    const run = require('../.github/scripts/notification/send-slack-pr-notify.js');
+    await run({ github, context, core });
+
+    expect(core.failures).toHaveLength(1);
+    expect(core.failures[0]).toContain('Network connection refused');
+  });
 });
