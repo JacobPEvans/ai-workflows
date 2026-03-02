@@ -38,7 +38,7 @@ This repo is the single source of truth for CI/CD automation workflows. Each wor
 
 **AI Provenance**: All PR-creating workflows (`code-simplifier`, `next-steps`, `post-merge-docs-review`, `post-merge-tests`, `issue-resolver`) include a standardized provenance footer in every PR body. `ci-fix` appends provenance to the commit message. See `docs/PATTERNS.md` for the AI Provenance Pattern.
 
-**Slack notifications**: `notify-ai-pr.yml` is a reusable workflow that consumer repos call on `pull_request: opened`. It filters for `claude[bot]`-authored PRs and posts to `#github-automation` via Slack Incoming Webhook. Requires `SLACK_WEBHOOK_URL` secret.
+**Slack notifications**: `notify-ai-pr.yml` is a reusable workflow that consumer repos call on `pull_request: opened`. It filters for `claude[bot]`-authored PRs and posts to `#github-automation` via Slack Incoming Webhook. Requires `GH_SLACK_WEBHOOK_URL_GITHUB_AUTOMATION` secret (synced via secrets-sync).
 
 ### Consumer Repo Caller Pattern
 

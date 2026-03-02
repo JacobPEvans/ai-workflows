@@ -460,7 +460,7 @@ jobs:
     secrets: inherit
 ```
 
-**Required secret**: `SLACK_WEBHOOK_URL` (Slack Incoming Webhook URL for `#github-automation`)
+**Required secret**: `GH_SLACK_WEBHOOK_URL_GITHUB_AUTOMATION` (Slack Incoming Webhook URL for `#github-automation`, synced from Doppler via secrets-sync)
 
 **Message content** (Slack Block Kit):
 - Header: "AI-Created PR Opened"
