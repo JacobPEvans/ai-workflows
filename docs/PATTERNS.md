@@ -453,6 +453,7 @@ on:
   pull_request:
     types: [opened]
 permissions:
+  contents: read
   pull-requests: read
 jobs:
   notify:
