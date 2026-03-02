@@ -213,8 +213,8 @@ When a bot creates a PR (e.g., the `claude` GitHub App), `claude-code-action@v1`
           steps.eligibility.outputs.eligible == 'true' &&
           (
             github.event.pull_request.user.type != 'Bot' ||
-            contains(inputs.allowed_bots, github.event.pull_request.user.login) ||
-            contains(inputs.allowed_bots, '*')
+            contains(format(',{0},', replace(inputs.allowed_bots, ' ', '')), format(',{0},', github.event.pull_request.user.login)) ||
+            contains(format(',{0},', replace(inputs.allowed_bots, ' ', '')), ',*,')
           )
         uses: anthropics/claude-code-action@v1
 ```
@@ -223,6 +223,8 @@ When a bot creates the PR and isn't in `allowed_bots`, the step shows as **skipp
 
 **Behavior by event type**:
 - `pull_request` events: `github.event.pull_request.user.type` is set — bot guard applies
+- `pull_request_review` events (`final-pr-review`): `github.event.pull_request` is available — bot guard applies
+- `check_suite` events (`final-pr-review`): `github.event.pull_request` is null; `final-pr-review` fetches the PR author via API before the Claude step — bot guard applies correctly
 - `issue_comment` events (interactive job): `github.event.pull_request` is null → `'' != 'Bot'` → true — always runs
 - `workflow_run` events (ci-fix): `github.event.pull_request` is null → always runs
 
@@ -237,7 +239,7 @@ jobs:
       allowed_bots: "claude"  # Allow Claude App PRs to be reviewed
 ```
 
-Supports comma-separated logins or `*` to allow all bots.
+Supports comma-separated logins (no spaces) or `*` to allow all bots. Matching is exact-token (not substring).
 
 ### Layer 3: Dependency bot filtering (`if:` guards)
 
