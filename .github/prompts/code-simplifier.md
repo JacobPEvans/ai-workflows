@@ -48,3 +48,9 @@ Pick the single highest-impact improvement. Create one focused PR that:
 - Has a clear title describing the improvement
 - Includes a body explaining what was found and why the change helps
 - Does not introduce new functionality or change behavior
+- Includes this provenance footer at the bottom of the PR body:
+
+  ```
+  ---
+  > **AI Provenance** | Workflow: `${WORKFLOW_NAME}` | [Run ${RUN_ID}](${RUN_URL}) | Event: `${EVENT_NAME}` | Actor: `${TRIGGER_ACTOR}`
+  ```

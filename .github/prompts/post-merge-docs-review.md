@@ -47,6 +47,12 @@ If threshold is met:
    - Title: docs: fix <brief description of issues>
    - Body listing each issue found, its category (critical/non-critical), and what was fixed
    - Include a "Detection Trigger" section explaining which merge prompted this review
+4. Include this provenance footer at the bottom of the PR body:
+
+   ```
+   ---
+   > **AI Provenance** | Workflow: `${WORKFLOW_NAME}` | [Run ${RUN_ID}](${RUN_URL}) | Event: `${EVENT_NAME}` | Actor: `${TRIGGER_ACTOR}`
+   ```
 
 ## Rules
 

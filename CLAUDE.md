@@ -36,6 +36,10 @@ This repo is the single source of truth for CI/CD automation workflows. Each wor
 
 **Bot guard**: All `claude-code-action@v1` steps include `allowed_bots: "github-actions"` to allow dispatch-triggered runs (which set `github.actor` to `github-actions[bot]`). Cost control is handled by consumer-level daily dispatch limits, not by blocking bots at the workflow level. See `docs/PATTERNS.md` for the Bot Guard and AI Dispatch patterns.
 
+**AI Provenance**: All PR-creating workflows (`code-simplifier`, `next-steps`, `post-merge-docs-review`, `post-merge-tests`, `issue-resolver`) include a standardized provenance footer in every PR body. `ci-fix` appends provenance to the commit message. See `docs/PATTERNS.md` for the AI Provenance Pattern.
+
+**Slack notifications**: `notify-ai-pr.yml` is a reusable workflow that consumer repos call on `pull_request: opened`. It filters for `claude[bot]`-authored PRs and posts to `#github-automation` via Slack Incoming Webhook. Requires `SLACK_WEBHOOK_URL` secret.
+
 ### Consumer Repo Caller Pattern
 
 ```yaml

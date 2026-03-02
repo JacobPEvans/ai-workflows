@@ -52,7 +52,7 @@ Then proceed:
    gh pr create \
      --head <branch-name> \
      --title "<type>: <description>" \
-     --body "Closes #${ISSUE_NUMBER}\n\n## Summary\n- <what changed and why>"
+     --body "Closes #${ISSUE_NUMBER}\n\n## Summary\n- <what changed and why>\n\n---\n> **AI Provenance** | Workflow: \`${WORKFLOW_NAME}\` | [Run ${RUN_ID}](${RUN_URL}) | Event: \`${EVENT_NAME}\` | Actor: \`${TRIGGER_ACTOR}\`"
    ```
 8. **Comment on issue**: `gh issue comment ${ISSUE_NUMBER} --body "Created PR: #<pr-number>"`
 
