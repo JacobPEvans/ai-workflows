@@ -89,8 +89,8 @@ jobs:
           steps.eligibility.outputs.eligible == 'true' &&
           (
             github.event.pull_request.user.type != 'Bot' ||
-            contains(inputs.allowed_bots, github.event.pull_request.user.login) ||
-            contains(inputs.allowed_bots, '*')
+            contains(format(',{0},', replace(inputs.allowed_bots, ' ', '')), format(',{0},', github.event.pull_request.user.login)) ||
+            contains(format(',{0},', replace(inputs.allowed_bots, ' ', '')), ',*,')
           )
         id: prompt
         env:
@@ -104,8 +104,8 @@ jobs:
           steps.eligibility.outputs.eligible == 'true' &&
           (
             github.event.pull_request.user.type != 'Bot' ||
-            contains(inputs.allowed_bots, github.event.pull_request.user.login) ||
-            contains(inputs.allowed_bots, '*')
+            contains(format(',{0},', replace(inputs.allowed_bots, ' ', '')), format(',{0},', github.event.pull_request.user.login)) ||
+            contains(format(',{0},', replace(inputs.allowed_bots, ' ', '')), ',*,')
           )
         uses: anthropics/claude-code-action@v1
         with:
