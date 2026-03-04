@@ -17,6 +17,7 @@ describe('check-eligibility', () => {
 
   function setupDefaultPaginate(github) {
     github.paginate
+      .mockResolvedValueOnce([])  // gate 1b: recent bot PRs
       .mockResolvedValueOnce([])  // gate 8: open PRs
       .mockResolvedValueOnce([])  // gate 9: attempt comments
       .mockResolvedValueOnce([]); // gate 10: daily comments
@@ -46,6 +47,44 @@ describe('check-eligibility', () => {
     context.payload = {};
     await run({ github, context, core });
     expect(core.getOutput('should_run')).toBe('false');
+  });
+
+  it('sets should_run=false when daily PR ceiling is reached (gate 1b)', async () => {
+    const botPRs = Array.from({ length: 10 }, (_, i) => ({
+      user: { login: 'claude[bot]' },
+      created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hour ago
+    }));
+    github.paginate.mockReset();
+    github.paginate
+      .mockResolvedValueOnce(botPRs) // gate 1b: 10 bot PRs in last 24h
+      .mockResolvedValueOnce([])     // gate 8: open PRs
+      .mockResolvedValueOnce([])     // gate 9: attempt comments
+      .mockResolvedValueOnce([]);    // gate 10: daily comments
+    await run({ github, context, core });
+    expect(core.getOutput('should_run')).toBe('false');
+  });
+
+  it('continues when daily PR ceiling is not reached (gate 1b)', async () => {
+    const botPRs = Array.from({ length: 9 }, (_, i) => ({
+      user: { login: 'claude[bot]' },
+      created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hour ago
+    }));
+    github.paginate.mockReset();
+    github.paginate
+      .mockResolvedValueOnce(botPRs) // gate 1b: 9 bot PRs — under ceiling
+      .mockResolvedValueOnce([])     // gate 8: open PRs
+      .mockResolvedValueOnce([])     // gate 9: attempt comments
+      .mockResolvedValueOnce([]);    // gate 10: daily comments
+    await run({ github, context, core });
+    expect(core.getOutput('should_run')).toBe('true');
+  });
+
+  it('sets should_run=false and fails closed when PR ceiling API errors (gate 1b)', async () => {
+    github.paginate.mockReset();
+    github.paginate.mockRejectedValueOnce(new Error('API rate limit exceeded'));
+    await run({ github, context, core });
+    expect(core.getOutput('should_run')).toBe('false');
+    expect(core.infos.some(msg => msg.includes('Failing closed'))).toBe(true);
   });
 
   it('sets should_run=false for disallowed author_association (gate 2)', async () => {
@@ -108,6 +147,7 @@ describe('check-eligibility', () => {
   it('sets should_run=false when PR already references issue (gate 8)', async () => {
     github.paginate.mockReset();
     github.paginate
+      .mockResolvedValueOnce([])  // gate 1b: recent bot PRs
       .mockResolvedValueOnce([{ number: 99, body: 'fixes #5' }])
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([]);
@@ -120,6 +160,7 @@ describe('check-eligibility', () => {
     const marker = '<!-- claude-issue-resolver-attempt -->';
     github.paginate.mockReset();
     github.paginate
+      .mockResolvedValueOnce([])  // gate 1b: recent bot PRs
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([{ user: { type: 'Bot' }, body: marker }])
       .mockResolvedValueOnce([]);
@@ -132,6 +173,7 @@ describe('check-eligibility', () => {
     const marker = '<!-- claude-issue-resolver-attempt -->';
     github.paginate.mockReset();
     github.paginate
+      .mockResolvedValueOnce([])  // gate 1b: recent bot PRs
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([{ user: { type: 'Bot' }, body: marker }]);

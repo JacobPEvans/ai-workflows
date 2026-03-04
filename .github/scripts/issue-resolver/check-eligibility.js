@@ -15,20 +15,30 @@ module.exports = async ({ github, context, core }) => {
 
   // Gate 1b: Unified daily PR ceiling — prevent automation loops
   const prCeilingSince = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const prCeilingCutoff = new Date(prCeilingSince);
   const botLogins = ['claude[bot]', 'github-actions[bot]'];
   let recentBotPRs = 0;
-  for (const bot of botLogins) {
-    try {
-      const prs = await github.rest.pulls.list({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        state: 'all',
-        per_page: 100,
-      });
-      recentBotPRs += prs.data.filter(
-        pr => pr.user?.login === bot && new Date(pr.created_at) > new Date(prCeilingSince)
-      ).length;
-    } catch (e) { /* ignore */ }
+  try {
+    const allRecentPRs = await github.paginate(github.rest.pulls.list, {
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      state: 'all',
+      per_page: 100,
+    }, (response, done) => {
+      // Stop paginating once PRs are older than the 24h cutoff
+      const page = response.data;
+      if (page.length > 0 && new Date(page[page.length - 1].created_at) < prCeilingCutoff) {
+        done();
+      }
+      return page;
+    });
+    recentBotPRs = allRecentPRs.filter(
+      pr => botLogins.includes(pr.user?.login) && new Date(pr.created_at) > prCeilingCutoff
+    ).length;
+  } catch (e) {
+    core.info(`Warning: failed to check daily PR ceiling: ${e.message}. Failing closed.`);
+    core.setOutput('should_run', 'false');
+    return;
   }
   const PR_DAILY_CEILING = 10;
   if (recentBotPRs >= PR_DAILY_CEILING) {
