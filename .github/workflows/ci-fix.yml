@@ -143,6 +143,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      issues: write
       pull-requests: write
     timeout-minutes: 15
     steps:
@@ -183,19 +184,15 @@ jobs:
           use_commit_signing: "true"
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
-            --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
+            --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
 
       - name: Comment on failure
         if: failure()
         uses: actions/github-script@v8
+        env:
+          PR_NUMBER: ${{ needs.should-fix.outputs.pr_number }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const prNumber = ${{ needs.should-fix.outputs.pr_number }};
-            if (!prNumber) return;
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: `> **CI fix failed.** Workflow timed out or encountered an error.\n> [View run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n> This PR may need manual CI fixes.`
-            });
+            const run = require('./.ai-workflows/.github/scripts/ci-fix/post-failure-comment.js');
+            await run({ github, context, core });
