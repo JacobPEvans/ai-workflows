@@ -31,8 +31,78 @@ describe('ci-fail-issue/check-eligibility', () => {
       data: { author: { login: 'some-human' } },
     });
 
-    // Default: no recent issues (covers both Gate 4 dedup and Gate 5 daily limit)
+    // Default: no recent issues for all paginate calls
+    // (Gate 0 calls paginate twice for botLogins; Gates 4/5 call it once)
     github.paginate.mockResolvedValue([]);
+  });
+
+  // --- Gate 0: daily bot issue ceiling ---
+
+  it('Gate 0: sets eligible=false when ceiling is reached (5 bot issues already created)', async () => {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    // 3 issues for claude[bot], 2 issues for github-actions[bot] = 5 total
+    const claudeIssues = [
+      { pull_request: undefined, created_at: new Date().toISOString() },
+      { pull_request: undefined, created_at: new Date().toISOString() },
+      { pull_request: undefined, created_at: new Date().toISOString() },
+    ];
+    const actionsIssues = [
+      { pull_request: undefined, created_at: new Date().toISOString() },
+      { pull_request: undefined, created_at: new Date().toISOString() },
+    ];
+    // Gate 0 calls paginate for each bot; Gate 4/5 call paginate once
+    github.paginate
+      .mockResolvedValueOnce(claudeIssues)
+      .mockResolvedValueOnce(actionsIssues)
+      .mockResolvedValue([]); // fallback for subsequent calls
+
+    await run({ github, context, core });
+
+    expect(core.getOutput('eligible')).toBe('false');
+    expect(core.getOutput('skip_reason')).toContain('Daily bot activity limit reached');
+    expect(core.getOutput('skip_reason')).toContain('5');
+  });
+
+  it('Gate 0: allows through when ceiling is not reached (4 or fewer bot issues)', async () => {
+    // 2 issues for claude[bot], 2 for github-actions[bot] = 4 total (under ceiling of 5)
+    const twoIssues = [
+      { pull_request: undefined, created_at: new Date().toISOString() },
+      { pull_request: undefined, created_at: new Date().toISOString() },
+    ];
+    github.paginate
+      .mockResolvedValueOnce(twoIssues)  // claude[bot]
+      .mockResolvedValueOnce(twoIssues)  // github-actions[bot]
+      .mockResolvedValue([]);            // Gates 4/5
+
+    await run({ github, context, core });
+
+    expect(core.getOutput('eligible')).toBe('true');
+  });
+
+  it('Gate 0: excludes pull requests from the bot issue count', async () => {
+    // 5 items but they are all PRs — should not count toward ceiling
+    const prItems = Array.from({ length: 5 }, () => ({
+      pull_request: { url: 'https://github.com/pulls/1' },
+      created_at: new Date().toISOString(),
+    }));
+    github.paginate
+      .mockResolvedValueOnce(prItems)
+      .mockResolvedValueOnce(prItems)
+      .mockResolvedValue([]);
+
+    await run({ github, context, core });
+
+    expect(core.getOutput('eligible')).toBe('true');
+  });
+
+  it('Gate 0: fails closed (marks ineligible) when ceiling API call errors', async () => {
+    github.paginate.mockRejectedValueOnce(new Error('API rate limit exceeded'));
+
+    await run({ github, context, core });
+
+    expect(core.getOutput('eligible')).toBe('false');
+    expect(core.getOutput('skip_reason')).toContain('Could not verify daily bot issue ceiling');
+    expect(core.infos.some(msg => msg.includes('Failing closed'))).toBe(true);
   });
 
   it('Gate 1: sets eligible=false when conclusion is not failure', async () => {

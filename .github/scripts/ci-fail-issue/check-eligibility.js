@@ -8,22 +8,27 @@ module.exports = async ({ github, context, core }) => {
   // Gate 0: Unified daily issue ceiling — prevent automation loops
   const issueCeilingSince = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const botLogins = ['claude[bot]', 'github-actions[bot]'];
+  const ISSUE_DAILY_CEILING = 5;
   let recentBotIssues = 0;
   for (const bot of botLogins) {
     try {
-      const issues = await github.rest.issues.listForRepo({
+      const issues = await github.paginate(github.rest.issues.listForRepo, {
         owner, repo,
         creator: bot,
         since: issueCeilingSince,
         state: 'all',
         per_page: 100,
       });
-      recentBotIssues += issues.data.filter(
+      recentBotIssues += issues.filter(
         i => !i.pull_request && new Date(i.created_at) > new Date(issueCeilingSince)
       ).length;
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      core.info(`Warning: could not check bot issue count for ${bot}: ${e.message}. Failing closed.`);
+      core.setOutput('eligible', 'false');
+      core.setOutput('skip_reason', `Could not verify daily bot issue ceiling: ${e.message}`);
+      return;
+    }
   }
-  const ISSUE_DAILY_CEILING = 5;
   if (recentBotIssues >= ISSUE_DAILY_CEILING) {
     core.info(`Daily bot issue ceiling reached (${recentBotIssues}/${ISSUE_DAILY_CEILING}). Skipping.`);
     core.setOutput('eligible', 'false');
