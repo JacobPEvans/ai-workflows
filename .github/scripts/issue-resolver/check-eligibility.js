@@ -13,6 +13,31 @@ module.exports = async ({ github, context, core }) => {
     core.info(`Manual trigger: resolving issue #${issueNumber}`);
   }
 
+  // Gate 1b: Unified daily PR ceiling — prevent automation loops
+  const prCeilingSince = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const botLogins = ['claude[bot]', 'github-actions[bot]'];
+  let recentBotPRs = 0;
+  for (const bot of botLogins) {
+    try {
+      const prs = await github.rest.pulls.list({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        state: 'all',
+        per_page: 100,
+      });
+      recentBotPRs += prs.data.filter(
+        pr => pr.user?.login === bot && new Date(pr.created_at) > new Date(prCeilingSince)
+      ).length;
+    } catch (e) { /* ignore */ }
+  }
+  const PR_DAILY_CEILING = 10;
+  if (recentBotPRs >= PR_DAILY_CEILING) {
+    core.setOutput('should_run', 'false');
+    core.info(`Daily bot PR ceiling reached (${recentBotPRs}/${PR_DAILY_CEILING}). Skipping.`);
+    return;
+  }
+  core.info(`Daily bot PR count: ${recentBotPRs}/${PR_DAILY_CEILING}`);
+
   // Fetch fresh issue data — labels may have been updated by triage after event fired
   const { data: issue } = await github.rest.issues.get({
     owner: context.repo.owner,

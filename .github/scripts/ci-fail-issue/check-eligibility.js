@@ -5,6 +5,33 @@ module.exports = async ({ github, context, core }) => {
   const shortSha = sha.slice(0, 7);
   const marker = '<!-- ci-fail-issue -->';
 
+  // Gate 0: Unified daily issue ceiling — prevent automation loops
+  const issueCeilingSince = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const botLogins = ['claude[bot]', 'github-actions[bot]'];
+  let recentBotIssues = 0;
+  for (const bot of botLogins) {
+    try {
+      const issues = await github.rest.issues.listForRepo({
+        owner, repo,
+        creator: bot,
+        since: issueCeilingSince,
+        state: 'all',
+        per_page: 100,
+      });
+      recentBotIssues += issues.data.filter(
+        i => !i.pull_request && new Date(i.created_at) > new Date(issueCeilingSince)
+      ).length;
+    } catch (e) { /* ignore */ }
+  }
+  const ISSUE_DAILY_CEILING = 5;
+  if (recentBotIssues >= ISSUE_DAILY_CEILING) {
+    core.info(`Daily bot issue ceiling reached (${recentBotIssues}/${ISSUE_DAILY_CEILING}). Skipping.`);
+    core.setOutput('eligible', 'false');
+    core.setOutput('skip_reason', `Daily bot activity limit reached (${recentBotIssues} issues in 24h)`);
+    return;
+  }
+  core.info(`Daily bot issue count: ${recentBotIssues}/${ISSUE_DAILY_CEILING}`);
+
   // Gate 1: conclusion must be 'failure'
   if (run.conclusion !== 'failure') {
     core.info(`Gate 1: conclusion is ${run.conclusion}, not failure — skipping`);
