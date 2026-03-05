@@ -3,6 +3,7 @@ name: Release Please
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 # Workflow-level permissions set the maximum for all jobs.
 # permissions: {} silently skips all jobs in cross-repo calls.
