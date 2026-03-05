@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.6.0...v0.7.0) (2026-03-05)
+
+
+### Features
+
+* add AI provenance footers and Slack PR notifications ([#75](https://github.com/JacobPEvans/ai-workflows/issues/75)) ([94d3c9c](https://github.com/JacobPEvans/ai-workflows/commit/94d3c9cf55e49cb89f9b8c7170b386c2cc131629))
+* add issue-linker reusable workflow ([#68](https://github.com/JacobPEvans/ai-workflows/issues/68)) ([f552505](https://github.com/JacobPEvans/ai-workflows/commit/f552505779982d141b4a95ff5c481e61822a0025))
+* add suite grouping reusable workflows ([#72](https://github.com/JacobPEvans/ai-workflows/issues/72)) ([3924519](https://github.com/JacobPEvans/ai-workflows/commit/3924519482a87166e0d4337bf40e5df1c4b8411b))
+* **gh-aw:** add autonomous agentic workflows (Copilot engine) ([#64](https://github.com/JacobPEvans/ai-workflows/issues/64)) ([31e88b4](https://github.com/JacobPEvans/ai-workflows/commit/31e88b453ed461e118cdfca8a290abce5c4a62ca))
+* **renovate:** extend shared preset, remove duplicated rules ([#63](https://github.com/JacobPEvans/ai-workflows/issues/63)) ([508ac34](https://github.com/JacobPEvans/ai-workflows/commit/508ac34c2f1e3352b1823e4c9f9f9c6f9f8aa600))
+* skip dependency bot workflows (renovate, dependabot) ([#69](https://github.com/JacobPEvans/ai-workflows/issues/69)) ([0d01900](https://github.com/JacobPEvans/ai-workflows/commit/0d019008406c9efcde0051d4d9faf8c7f5428d20))
+* soft bot guard — skip instead of fail when bot creates PR ([#73](https://github.com/JacobPEvans/ai-workflows/issues/73)) ([8b26d6a](https://github.com/JacobPEvans/ai-workflows/commit/8b26d6ab5918f6a4c4d6bcb09132b752f0c15dd0))
+
+
+### Bug Fixes
+
+* add allowed_bots to all claude-code-action steps ([#65](https://github.com/JacobPEvans/ai-workflows/issues/65)) ([fc19382](https://github.com/JacobPEvans/ai-workflows/commit/fc1938256ddca974ab27127ff5298ff020a2de25))
+* add git write permissions, failure comments, and anti-loop ceilings ([#77](https://github.com/JacobPEvans/ai-workflows/issues/77)) ([6ccdb87](https://github.com/JacobPEvans/ai-workflows/commit/6ccdb873664997548b8dbbb14c4e46821969e977))
+* add workflow_dispatch to all suite workflows and correct nesting limit comment ([#74](https://github.com/JacobPEvans/ai-workflows/issues/74)) ([5c84ebd](https://github.com/JacobPEvans/ai-workflows/commit/5c84ebd3cdd503b39ce7c123bdf99dc959a73c22))
+* add workflow_dispatch trigger to release-please ([#79](https://github.com/JacobPEvans/ai-workflows/issues/79)) ([cf22534](https://github.com/JacobPEvans/ai-workflows/commit/cf225349a1b2aee5c2a483e3c00036e1a370128d))
+* correct bot guard docs and add missing test coverage ([#70](https://github.com/JacobPEvans/ai-workflows/issues/70)) ([2ff3793](https://github.com/JacobPEvans/ai-workflows/commit/2ff3793b13e1c426b62d9bd89aab0a223af30704))
+* remove sender.type Bot guards and update dispatch patterns ([#66](https://github.com/JacobPEvans/ai-workflows/issues/66)) ([ac05e3f](https://github.com/JacobPEvans/ai-workflows/commit/ac05e3f3c6b02da464e999b3acaf776f8997a9a7))
+* rename SLACK_WEBHOOK_URL secret to GH_SLACK_WEBHOOK_URL_GITHUB_AUTOMATION ([#76](https://github.com/JacobPEvans/ai-workflows/issues/76)) ([cc89482](https://github.com/JacobPEvans/ai-workflows/commit/cc8948286e2d6682a4b658a30b76b3823aa5fc05))
+
 ## [0.6.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.5.1...v0.6.0) (2026-02-27)
 
 
