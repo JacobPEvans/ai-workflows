@@ -1,0 +1,26 @@
+name: AI CI
+
+on:
+  workflow_run:
+    workflows: ["Tests"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+  id-token: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: ai-ci-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+jobs:
+  ci-suite:
+    uses: JacobPEvans/ai-workflows/.github/workflows/suite-ci.yml@v0.8.0
+    with:
+      repo_context: "Reusable GitHub Actions workflows for AI-powered CI/CD automation (prompts, scripts, YAML workflows)"
+      ci_structure: "test.yml (bun test for JavaScript scripts)"
+      workflow_name: "Tests"
+    secrets: inherit

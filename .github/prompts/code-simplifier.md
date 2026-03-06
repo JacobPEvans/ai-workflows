@@ -42,7 +42,7 @@ Examine the files changed in recent commits. Look for these issues in priority o
 
 ## Output
 
-Pick the single highest-impact improvement. Create one focused PR that:
+Pick up to 3 high-impact improvements from different categories. Create one PR addressing the selected improvements that:
 
 - Changes the minimum number of files needed
 - Has a clear title describing the improvement

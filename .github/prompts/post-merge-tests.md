@@ -27,7 +27,7 @@ For each changed file that has testable logic:
 If you find uncovered testable code:
 
 1. Create a new branch from `main` with name `chore/add-tests-<short-description>`
-2. Write 1-2 targeted test files following the EXACT patterns found in existing tests:
+2. Write 1-4 targeted test files following the EXACT patterns found in existing tests:
    - Same test framework and assertion style
    - Same file naming convention
    - Same directory structure
@@ -44,7 +44,7 @@ If you find uncovered testable code:
 
 ## Rules
 
-- Maximum 2 test files per run
+- Maximum 4 test files per run
 - Follow existing test patterns exactly — never introduce new test libraries or frameworks
 - Only test public APIs and exported functions
 - Do not create tests for trivial getters/setters or configuration files

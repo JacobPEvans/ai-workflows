@@ -23,7 +23,7 @@ Check for these issue categories in priority order:
 - **Sensitive data exposure**: API keys, tokens, real IP addresses, internal hostnames, passwords, or PII in documentation files. Check against scrubbing rules: use 192.168.0.* for IPs, example.com/example.local for domains, your-token-here for secrets.
 - **Broken functionality**: Code examples that reference deleted functions, renamed files, or changed APIs.
 
-### Non-critical (2+ needed to trigger a PR)
+### Non-critical (1+ needed to trigger a PR)
 - **DRY violations**: The same information repeated in multiple docs files.
 - **Code/doc inconsistency**: README describes behavior that no longer matches the code.
 - **Outdated references**: Links to moved/deleted files, references to old branch names, deprecated tool versions.
@@ -33,7 +33,7 @@ Check for these issue categories in priority order:
 
 Create a PR ONLY if:
 - 1 or more critical issues found, OR
-- 2 or more non-critical issues found
+- 1 or more non-critical issues found
 
 If below threshold, exit without action. Never create PRs for style-only changes.
 
