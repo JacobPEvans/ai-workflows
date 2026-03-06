@@ -441,7 +441,7 @@ env:
 
 ## Concurrency Pattern
 
-All AI workflows use `cancel-in-progress: false` (the default). This queues new runs behind in-progress ones rather than cancelling them.
+All AI workflows use `cancel-in-progress: false`. This queues new runs behind in-progress ones rather than cancelling them.
 
 **Why**: Cancelling an in-progress AI run wastes tokens — the model's work is discarded. Queuing ensures every run completes.
 
