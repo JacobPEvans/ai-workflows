@@ -4,7 +4,7 @@ Reusable AI agent workflows for GitHub Actions. Consumer repos call these with t
 
 ## Architecture
 
-This repo is the single source of truth for CI/CD automation workflows. Each workflow is a GitHub reusable workflow (`on: workflow_call`) that consumer repos invoke via `uses: JacobPEvans/ai-workflows/.github/workflows/<name>.yml@v0.1.0`.
+This repo is the single source of truth for CI/CD automation workflows. Each workflow is a GitHub reusable workflow (`on: workflow_call`) that consumer repos invoke via `uses: JacobPEvans/ai-workflows/.github/workflows/<name>.yml@v0.9.2`.
 
 ### Directory Structure
 
@@ -24,7 +24,6 @@ This repo is the single source of truth for CI/CD automation workflows. Each wor
     notification/
     post-merge-docs-review/
     post-merge-tests/
-    shared/
     verification/
   workflows/
     *.yml                           # Pure YAML workflow definitions (no embedded content)
@@ -62,7 +61,7 @@ permissions:
   pull-requests: read
 jobs:
   sweep:
-    uses: JacobPEvans/ai-workflows/.github/workflows/issue-sweeper.yml@v0.3.3
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-sweeper.yml@v0.9.2
     secrets: inherit
 ```
 
