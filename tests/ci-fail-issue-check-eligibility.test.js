@@ -141,4 +141,43 @@ describe('ci-fail-issue/check-eligibility', () => {
     // Warning should be logged
     expect(core.infos.some(msg => msg.includes('Could not get commit author'))).toBe(true);
   });
+
+  it('Gate 0: sets eligible=false when daily bot issue ceiling is reached', async () => {
+    const recentDate = new Date(Date.now() - 60 * 60 * 1000).toISOString(); // 1 hour ago
+    const makeIssue = (n) => ({ pull_request: undefined, created_at: recentDate, number: n });
+
+    // 3 issues from claude[bot] + 2 from github-actions[bot] = 5 (ceiling is 5)
+    github.rest.issues.listForRepo
+      .mockResolvedValueOnce({ data: [makeIssue(1), makeIssue(2), makeIssue(3)] })
+      .mockResolvedValueOnce({ data: [makeIssue(4), makeIssue(5)] });
+
+    await run({ github, context, core });
+
+    expect(core.getOutput('eligible')).toBe('false');
+    expect(core.getOutput('skip_reason')).toContain('Daily bot activity limit');
+  });
+
+  it('Gate 0: PR issues are excluded from bot issue count', async () => {
+    const recentDate = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    // These are PRs (have pull_request field) — should not count toward ceiling
+    const prIssue = { pull_request: { url: 'https://api.github.com/pulls/1' }, created_at: recentDate };
+
+    github.rest.issues.listForRepo
+      .mockResolvedValueOnce({ data: [prIssue, prIssue, prIssue, prIssue, prIssue] })
+      .mockResolvedValueOnce({ data: [] });
+
+    await run({ github, context, core });
+
+    // PRs don't count — ceiling not reached — eligible proceeds
+    expect(core.getOutput('eligible')).toBe('true');
+  });
+
+  it('Gate 0: listForRepo errors are swallowed and do not block eligibility', async () => {
+    github.rest.issues.listForRepo.mockRejectedValue(new Error('403 Forbidden'));
+
+    await run({ github, context, core });
+
+    // Error is silently ignored — gate 0 count stays at 0 — should proceed
+    expect(core.getOutput('eligible')).toBe('true');
+  });
 });
