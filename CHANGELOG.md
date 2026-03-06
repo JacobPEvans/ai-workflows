@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.9.2](https://github.com/JacobPEvans/ai-workflows/compare/v0.9.1...v0.9.2) (2026-03-06)
+
+
+### Bug Fixes
+
+* AI workflow safety & reliability ([#90](https://github.com/JacobPEvans/ai-workflows/issues/90) root cause + systemic hardening) ([#94](https://github.com/JacobPEvans/ai-workflows/issues/94)) ([2552dcc](https://github.com/JacobPEvans/ai-workflows/commit/2552dccbb92e41005f89bcdaf7afe652e948baca))
+
 ## [0.9.1](https://github.com/JacobPEvans/ai-workflows/compare/v0.9.0...v0.9.1) (2026-03-06)
 
 
