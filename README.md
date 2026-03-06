@@ -89,12 +89,17 @@ See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) for the full list of work
   prompts/              # Prompt files (one per workflow)
   scripts/
     render-prompt.sh    # Shared: envsubst + GITHUB_OUTPUT
-    ci-fix/             # Extracted JS scripts per workflow
-    best-practices/
+    best-practices/     # Extracted JS scripts per workflow
+    ci-fail-issue/
+    ci-fix/
+    claude-review/
     final-pr-review/
-    post-merge-tests/
+    issue-linker/
+    issue-resolver/
+    notification/
     post-merge-docs-review/
-    issue-resolver/     # Eligibility checks for the issue-resolver workflow
+    post-merge-tests/
+    verification/       # E2E test script
   workflows/            # Reusable workflow YAML definitions
 docs/                   # Documentation and verification runbook
 ```
