@@ -203,6 +203,8 @@ Four layers of bot filtering apply, depending on workflow type.
 
 **Fix**: Every `claude-code-action@v1` step includes `allowed_bots: "github-actions"`. This allows the trusted internal dispatch actor while blocking external bots.
 
+**Exception**: ci-fix uses `allowed_bots: "github-actions,claude"` because `workflow_run` events propagate the original actor. When `claude[bot]` pushes a commit, `github.actor` is `claude[bot]` — the action strips `[bot]` and checks against `allowed_bots`. Loop prevention is handled by the attempt counter (max 2), not by blocking the actor.
+
 ### Layer 2: PR author pre-check (`if:` on action steps)
 
 When a bot creates a PR (e.g., the `claude` GitHub App), `claude-code-action@v1`'s built-in bot guard hard-fails the step — producing a red CI failure. The fix: add an `if:` condition directly on the `claude-code-action` step (and any steps that depend on its output) to check the PR author type *before* the action runs.
@@ -241,7 +243,7 @@ Supports comma-separated logins or `*` to allow all bots.
 
 ### Layer 3: Dependency bot filtering (`if:` guards)
 
-PR-triggered workflows (claude-review, final-pr-review, ci-fix, issue-linker, pr-issue-linker) add `if:` guards on their first job to skip runs triggered by dependency bots (Renovate, Dependabot) and the Claude GitHub App. This produces a clean **skipped** (grey) status instead of a **failed** (red) status.
+PR-triggered workflows (claude-review, final-pr-review, issue-linker, pr-issue-linker) add `if:` guards on their first job to skip runs triggered by dependency bots (Renovate, Dependabot) and the Claude GitHub App. This produces a clean **skipped** (grey) status instead of a **failed** (red) status.
 
 ```yaml
   gate-check:
@@ -250,6 +252,8 @@ PR-triggered workflows (claude-review, final-pr-review, ci-fix, issue-linker, pr
       github.actor != 'dependabot[bot]' &&
       github.actor != 'claude[bot]'
 ```
+
+**Exception**: ci-fix does NOT block `claude[bot]` — it only blocks dependency bots (`renovate[bot]`, `dependabot[bot]`). When Claude creates a PR and CI fails, ci-fix needs to run. Loop prevention is handled by the attempt counter (`check-attempts.js`, max 2 attempts per PR), not by blocking the actor.
 
 **Why at the job level**: Skipping the first job causes GitHub to show all downstream jobs as skipped too — a clean grey tree.
 

@@ -47,8 +47,7 @@ jobs:
     name: Check if fix needed
     if: >-
       github.actor != 'renovate[bot]' &&
-      github.actor != 'dependabot[bot]' &&
-      github.actor != 'claude[bot]'
+      github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
@@ -217,7 +216,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          allowed_bots: "github-actions"
+          allowed_bots: "github-actions,claude"
           use_commit_signing: "true"
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
