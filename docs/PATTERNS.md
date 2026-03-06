@@ -439,6 +439,24 @@ env:
 
 ---
 
+## Concurrency Pattern
+
+All AI workflows use `cancel-in-progress: false` (the default). This queues new runs behind in-progress ones rather than cancelling them.
+
+**Why**: Cancelling an in-progress AI run wastes tokens — the model's work is discarded. Queuing ensures every run completes.
+
+**Rule**: AI workflows must NEVER use `cancel-in-progress: true`. Consumer repos must NOT override this at their caller level.
+
+**Concurrency group scoping**: Groups are scoped per-entity (PR number, issue number, branch) so different entities run concurrently while the same entity queues:
+
+```yaml
+concurrency:
+  group: claude-review-${{ github.repository }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
+  cancel-in-progress: false  # Never cancel — queue instead to avoid wasting AI tokens
+```
+
+---
+
 ## Slack Notification Pattern
 
 Consumer repos receive real-time Slack alerts in `#github-automation` when Claude opens a PR.

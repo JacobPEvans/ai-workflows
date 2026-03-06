@@ -42,6 +42,7 @@ permissions:
 
 concurrency:
   group: my-workflow-${{ github.repository }}
+  cancel-in-progress: false  # Never cancel — queue instead to avoid wasting AI tokens
 
 jobs:
   run:

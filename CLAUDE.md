@@ -111,6 +111,10 @@ module.exports = async ({ github, context, core }) => {
 
 Pass GitHub Actions expression values (`${{ }}`) via `env:` on the step, then read them with `process.env` in the script. Never interpolate expressions inside `.js` files.
 
+### Concurrency
+
+Never use `cancel-in-progress: true` in AI workflows. Cancelling an in-progress run wastes tokens — always use `cancel-in-progress: false` to queue runs instead.
+
 ### Authentication
 
 Use `CLAUDE_CODE_OAUTH_TOKEN` for all Claude Code workflows. Do not create aliases or alternative secret names.

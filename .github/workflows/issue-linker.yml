@@ -30,7 +30,7 @@ permissions:
 
 concurrency:
   group: issue-linker-${{ github.repository }}-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: true
+  cancel-in-progress: false  # Never cancel — queue instead to avoid wasting AI tokens
 
 jobs:
   check-eligibility:
