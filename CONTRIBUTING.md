@@ -41,7 +41,7 @@ permissions:
   issues: write    # add only what's needed
 
 concurrency:
-  group: my-workflow-${{ github.repository }}
+  group: my-workflow-${{ github.repository }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: false  # Never cancel — queue instead to avoid wasting AI tokens
 
 jobs:
