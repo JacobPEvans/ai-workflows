@@ -16,7 +16,13 @@ on:
         required: false
         type: string
 
-permissions: {}
+permissions:
+  actions: write
+  checks: read
+  contents: write
+  id-token: write
+  issues: write
+  pull-requests: write
 
 jobs:
   # Push to main -> re-dispatch as workflow_dispatch so post-merge suites
