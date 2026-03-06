@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.9.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.8.0...v0.9.0) (2026-03-06)
+
+
+### Features
+
+* increase prompt scope, raise timeouts, and add ai-workflows dogfooding ([#83](https://github.com/JacobPEvans/ai-workflows/issues/83)) ([7afa3f7](https://github.com/JacobPEvans/ai-workflows/commit/7afa3f7633f9fa45daabe1668638e21cad45cb5f))
+
+
+### Bug Fixes
+
+* correct dogfood permissions and docs-review threshold ([#84](https://github.com/JacobPEvans/ai-workflows/issues/84)) ([0a2e6b7](https://github.com/JacobPEvans/ai-workflows/commit/0a2e6b74dcab67f8ee9854f8776c4399b42ce394))
+* remove blanket auto-merge workflow ([#85](https://github.com/JacobPEvans/ai-workflows/issues/85)) ([aaa0ae7](https://github.com/JacobPEvans/ai-workflows/commit/aaa0ae76841e082e25214047082e55f0471eccf1))
+
 ## [0.8.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.7.0...v0.8.0) (2026-03-05)
 
 
