@@ -54,7 +54,7 @@ permissions:
   issues: write
 jobs:
   triage:
-    uses: JacobPEvans/ai-workflows/.github/workflows/issue-triage.yml@v0.3.0
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-triage.yml@v0.9.1
     secrets: inherit
 ```
 
@@ -74,7 +74,7 @@ permissions:
   pull-requests: read
 jobs:
   sweep:
-    uses: JacobPEvans/ai-workflows/.github/workflows/issue-sweeper.yml@v0.3.0
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-sweeper.yml@v0.9.1
     secrets: inherit
 ```
 
