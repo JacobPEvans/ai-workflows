@@ -34,9 +34,8 @@ Reusable AI agent workflows for GitHub Actions. Consumer repos call these with t
 ### Prerequisites
 
 1. [GitHub CLI](https://cli.github.com/) installed and authenticated
-2. Two secrets configured in each consumer repo:
+2. One secret configured in each consumer repo:
    - `CLAUDE_CODE_OAUTH_TOKEN` — Claude Code OAuth token
-   - `GH_CLAUDE_SSH_SIGNING_KEY` — SSH signing key for Claude commits (required for write workflows)
 
 ### Add a Workflow to Your Repo
 
