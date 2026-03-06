@@ -7,7 +7,6 @@ Add ai-workflows reusable workflows to your repository using thin caller files.
 1. [GitHub CLI](https://cli.github.com/) installed and authenticated
 2. Secrets configured in your repository:
    - `CLAUDE_CODE_OAUTH_TOKEN` — Claude Code OAuth token (required by all workflows)
-   - `GH_CLAUDE_SSH_SIGNING_KEY` — SSH signing key for Claude commits (required by write workflows)
 
 ## How It Works
 
