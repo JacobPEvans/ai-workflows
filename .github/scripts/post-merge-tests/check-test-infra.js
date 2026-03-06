@@ -1,14 +1,15 @@
+const { automationBots } = require('../shared/constants.js');
+
 module.exports = async ({ github, context, core }) => {
   const owner = context.repo.owner;
   const repo = context.repo.repo;
 
-  // Skip commits authored by dependency bots
+  // Skip commits authored by automation bots
   const sha = process.env.OVERRIDE_SHA || context.sha;
   try {
     const { data: commitData } = await github.rest.repos.getCommit({ owner, repo, ref: sha });
     const authorLogin = commitData.author?.login || '';
-    const depBots = ['renovate[bot]', 'dependabot[bot]'];
-    if (depBots.includes(authorLogin)) {
+    if (automationBots.includes(authorLogin)) {
       core.setOutput('has_tests', 'false');
       core.info(`Commit authored by ${authorLogin} — skipping test review`);
       return;

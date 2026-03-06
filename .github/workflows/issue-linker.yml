@@ -37,7 +37,8 @@ jobs:
     name: Check eligibility
     if: >-
       github.actor != 'renovate[bot]' &&
-      github.actor != 'dependabot[bot]'
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'claude[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read

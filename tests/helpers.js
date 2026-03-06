@@ -58,6 +58,7 @@ function createMockGithub() {
       actions: {
         listJobsForWorkflowRun: mock(),
         downloadJobLogsForWorkflowRun: mock(),
+        listWorkflowRuns: mock(),
       },
     },
     paginate,

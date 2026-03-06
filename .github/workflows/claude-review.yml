@@ -11,6 +11,10 @@ name: Claude Code Review
 on:
   workflow_call:
     inputs:
+      daily_run_limit:
+        description: "Max workflow runs per day (0 to disable)"
+        type: string
+        default: "5"
       review_prompt:
         description: "Optional repo-specific review focus"
         type: string
@@ -43,11 +47,40 @@ concurrency:
   cancel-in-progress: false  # Never cancel — queue instead to avoid wasting AI tokens
 
 jobs:
+  check-daily-limit:
+    name: Check daily run limit
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v6
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Check daily run limit
+        id: check
+        uses: actions/github-script@v8
+        env:
+          DAILY_RUN_LIMIT: ${{ inputs.daily_run_limit }}
+          WORKFLOW_FILE: ${{ github.workflow_ref }}
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/shared/check-daily-limit.js');
+            await run({ github, context, core });
+
   review:
     name: Claude Code Review
+    needs: check-daily-limit
     if: >-
+      needs.check-daily-limit.outputs.should_run == 'true' &&
       github.actor != 'renovate[bot]' &&
       github.actor != 'dependabot[bot]' &&
+      github.actor != 'claude[bot]' &&
       github.event.pull_request != null &&
       !contains(github.event.pull_request.labels.*.name, 'ai:skip-review')
     runs-on: ubuntu-latest

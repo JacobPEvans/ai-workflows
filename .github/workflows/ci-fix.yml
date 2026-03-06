@@ -11,6 +11,10 @@ name: CI Fix (Claude)
 on:
   workflow_call:
     inputs:
+      daily_run_limit:
+        description: "Max workflow runs per day (0 to disable)"
+        type: string
+        default: "5"
       repo_context:
         description: "Brief description of the repository"
         type: string
@@ -43,7 +47,8 @@ jobs:
     name: Check if fix needed
     if: >-
       github.actor != 'renovate[bot]' &&
-      github.actor != 'dependabot[bot]'
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'claude[bot]'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
@@ -79,12 +84,39 @@ jobs:
             const run = require('./.ai-workflows/.github/scripts/ci-fix/check-attempts.js');
             await run({ github, context, core });
 
+  check-daily-limit:
+    name: Check daily run limit
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v6
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Check daily run limit
+        id: check
+        uses: actions/github-script@v8
+        env:
+          DAILY_RUN_LIMIT: ${{ inputs.daily_run_limit }}
+          WORKFLOW_FILE: ${{ github.workflow_ref }}
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/shared/check-daily-limit.js');
+            await run({ github, context, core });
+
   post-attempt-comment:
     name: Post attempt marker
-    needs: should-fix
+    needs: [should-fix, check-daily-limit]
     if: >-
       github.event.workflow_run.head_repository.full_name == github.repository &&
-      needs.should-fix.outputs.should_run == 'true'
+      needs.should-fix.outputs.should_run == 'true' &&
+      needs.check-daily-limit.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -109,10 +141,11 @@ jobs:
 
   get-failure-details:
     name: Get failure logs
-    needs: should-fix
+    needs: [should-fix, check-daily-limit]
     if: >-
       github.event.workflow_run.head_repository.full_name == github.repository &&
-      needs.should-fix.outputs.should_run == 'true'
+      needs.should-fix.outputs.should_run == 'true' &&
+      needs.check-daily-limit.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -136,9 +169,14 @@ jobs:
 
   fix:
     name: Claude Fix
-    needs: [should-fix, get-failure-details, post-attempt-comment]
+    needs: [should-fix, get-failure-details, post-attempt-comment, check-daily-limit]
     # Security: fork guard — only checkout branches from the same repository, never forks
-    if: github.event.workflow_run.head_repository.full_name == github.repository
+    # Also require upstream gate jobs to have passed (explicit `if` replaces the default
+    # dependency-success check, so all conditions must be listed here).
+    if: >-
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      needs.should-fix.outputs.should_run == 'true' &&
+      needs.check-daily-limit.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
