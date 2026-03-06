@@ -106,4 +106,52 @@ describe('check-gate', () => {
     await run({ github, context, core });
     expect(core.getOutput('should_run')).toBe('true');
   });
+
+  it('reads PR number from check_suite event payload', async () => {
+    context.payload = { check_suite: { pull_requests: [{ number: 42 }] } };
+    github.rest.pulls.get.mockResolvedValue({ data: buildPr() });
+    await run({ github, context, core });
+    expect(core.getOutput('should_run')).toBe('true');
+    expect(core.getOutput('pr_number')).toBe('42');
+  });
+
+  describe('gate 6: own workflow checks are excluded', () => {
+    it('ignores self-checks when evaluating gate 6', async () => {
+      // "Final PR Review" is in ownChecks — a failing self-check must not block
+      github.rest.checks.listForRef.mockResolvedValue({
+        data: {
+          check_runs: [
+            { name: 'Final PR Review', status: 'completed', conclusion: 'failure' },
+            { name: 'gate-check', status: 'in_progress', conclusion: null },
+          ],
+        },
+      });
+      await run({ github, context, core });
+      expect(core.getOutput('should_run')).toBe('true');
+    });
+
+    it('treats skipped conclusion as non-blocking', async () => {
+      github.rest.checks.listForRef.mockResolvedValue({
+        data: { check_runs: [{ name: 'Lint', status: 'completed', conclusion: 'skipped' }] },
+      });
+      await run({ github, context, core });
+      expect(core.getOutput('should_run')).toBe('true');
+    });
+
+    it('treats neutral conclusion as non-blocking', async () => {
+      github.rest.checks.listForRef.mockResolvedValue({
+        data: { check_runs: [{ name: 'Lint', status: 'completed', conclusion: 'neutral' }] },
+      });
+      await run({ github, context, core });
+      expect(core.getOutput('should_run')).toBe('true');
+    });
+
+    it('treats action_required conclusion as non-blocking', async () => {
+      github.rest.checks.listForRef.mockResolvedValue({
+        data: { check_runs: [{ name: 'Lint', status: 'completed', conclusion: 'action_required' }] },
+      });
+      await run({ github, context, core });
+      expect(core.getOutput('should_run')).toBe('true');
+    });
+  });
 });
