@@ -157,4 +157,42 @@ describe('check-eligibility', () => {
     await run({ github, context, core });
     expect(core.getOutput('should_run')).toBe('true');
   });
+
+  describe('gate 1b: daily bot PR ceiling', () => {
+    it('sets should_run=false when daily bot PR ceiling is reached', async () => {
+      // 10 recent claude[bot] PRs — exactly at the ceiling of 10
+      const recentDate = new Date(Date.now() - 60 * 1000).toISOString();
+      const botPRs = Array.from({ length: 10 }, () => ({
+        user: { login: 'claude[bot]' },
+        created_at: recentDate,
+      }));
+      github.rest.pulls.list.mockResolvedValue({ data: botPRs });
+      await run({ github, context, core });
+      expect(core.getOutput('should_run')).toBe('false');
+    });
+
+    it('passes gate 1b when bot PR count is below ceiling', async () => {
+      // Only 3 recent bot PRs — well below the ceiling of 10
+      const recentDate = new Date(Date.now() - 60 * 1000).toISOString();
+      const botPRs = Array.from({ length: 3 }, () => ({
+        user: { login: 'claude[bot]' },
+        created_at: recentDate,
+      }));
+      github.rest.pulls.list.mockResolvedValue({ data: botPRs });
+      await run({ github, context, core });
+      expect(core.getOutput('should_run')).toBe('true');
+    });
+
+    it('does not count bot PRs older than 24h toward the ceiling', async () => {
+      // 10 PRs that are 25h old — beyond the 24h window, should not count
+      const oldDate = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+      const oldPRs = Array.from({ length: 10 }, () => ({
+        user: { login: 'claude[bot]' },
+        created_at: oldDate,
+      }));
+      github.rest.pulls.list.mockResolvedValue({ data: oldPRs });
+      await run({ github, context, core });
+      expect(core.getOutput('should_run')).toBe('true');
+    });
+  });
 });
