@@ -33,7 +33,7 @@ Check for these issue categories in priority order:
 
 Create a PR ONLY if:
 - 1 or more critical issues found, OR
-- 1 or more non-critical issues found
+- 2 or more non-critical issues found
 
 If below threshold, exit without action. Never create PRs for style-only changes.
 
