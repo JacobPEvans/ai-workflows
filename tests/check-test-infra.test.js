@@ -74,4 +74,25 @@ describe('check-test-infra', () => {
     expect(core.getOutput('has_tests')).toBe('false');
     delete process.env.OVERRIDE_SHA;
   });
+
+  it('sets has_tests=true when pyproject.toml contains pytest config', async () => {
+    const content = Buffer.from('[tool.pytest.ini_options]\naddopts = "-v"').toString('base64');
+    github.rest.repos.getContent.mockImplementation(({ path }) => {
+      if (path === 'pyproject.toml') return Promise.resolve({ data: { content } });
+      return Promise.reject({ status: 404 });
+    });
+    await run({ github, context, core });
+    expect(core.getOutput('has_tests')).toBe('true');
+  });
+
+  it('sets has_tests=false when package.json has default no-test script', async () => {
+    const pkg = { scripts: { test: 'echo "Error: no test specified" && exit 1' } };
+    const content = Buffer.from(JSON.stringify(pkg)).toString('base64');
+    github.rest.repos.getContent.mockImplementation(({ path }) => {
+      if (path === 'package.json') return Promise.resolve({ data: { content } });
+      return Promise.reject({ status: 404 });
+    });
+    await run({ github, context, core });
+    expect(core.getOutput('has_tests')).toBe('false');
+  });
 });
