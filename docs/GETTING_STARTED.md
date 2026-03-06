@@ -117,30 +117,32 @@ permissions:
 Inputs: `repo_context` (required), `ci_structure` (required), `extra_tools` (optional)
 
 #### `post-merge-docs-review.yml`
-Triggered by `push: branches: [main]`. Reviews documentation after merges, creates fix PRs.
+Triggered via the dispatch pattern — consumer caller listens on `push: branches: [main]` and re-dispatches as `workflow_dispatch`. `push` events are not directly supported by `claude-code-action@v1`.
 
 ```yaml
-on:
-  push:
-    branches: [main]
+# Required permissions for the dispatch pattern
 permissions:
+  actions: write   # required for gh workflow run
   contents: write
   id-token: write
   pull-requests: write
 ```
+
+See [docs/PATTERNS.md — Post-Merge Dispatch Pattern](PATTERNS.md#post-merge-dispatch-pattern) for the full two-job consumer caller template.
 
 #### `post-merge-tests.yml`
-Triggered by `push: branches: [main]`. Analyzes merged code and creates draft PRs with tests.
+Triggered via the dispatch pattern — consumer caller listens on `push: branches: [main]` and re-dispatches as `workflow_dispatch`. `push` events are not directly supported by `claude-code-action@v1`.
 
 ```yaml
-on:
-  push:
-    branches: [main]
+# Required permissions for the dispatch pattern
 permissions:
+  actions: write   # required for gh workflow run
   contents: write
   id-token: write
   pull-requests: write
 ```
+
+See [docs/PATTERNS.md — Post-Merge Dispatch Pattern](PATTERNS.md#post-merge-dispatch-pattern) for the full two-job consumer caller template.
 
 #### `project-router.yml`
 Triggered by issue/PR events. Routes items to GitHub Projects.
