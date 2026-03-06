@@ -24,6 +24,7 @@ This repo is the single source of truth for CI/CD automation workflows. Each wor
     notification/
     post-merge-docs-review/
     post-merge-tests/
+    shared/
     verification/
   workflows/
     *.yml                           # Pure YAML workflow definitions (no embedded content)

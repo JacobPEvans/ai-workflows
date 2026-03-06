@@ -98,6 +98,7 @@ See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) for the full list of work
     notification/
     post-merge-docs-review/
     post-merge-tests/
+    shared/             # Shared scripts (check-daily-limit.js, constants.js)
     verification/       # E2E test script
   workflows/            # Reusable workflow YAML definitions
 docs/                   # Documentation and verification runbook
