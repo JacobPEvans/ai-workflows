@@ -12,7 +12,7 @@ module.exports = async ({ github, context, core }) => {
 
   // Skip commits authored by dependency bots
   const authorLogin = commit.author?.login || '';
-  const depBots = ['renovate[bot]', 'dependabot[bot]'];
+  const depBots = ['renovate[bot]', 'dependabot[bot]', 'claude[bot]'];
   if (depBots.includes(authorLogin)) {
     core.setOutput('is_relevant', 'false');
     core.info(`Commit authored by ${authorLogin} — skipping doc review`);

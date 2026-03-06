@@ -7,7 +7,7 @@ module.exports = async ({ github, context, core }) => {
   try {
     const { data: commitData } = await github.rest.repos.getCommit({ owner, repo, ref: sha });
     const authorLogin = commitData.author?.login || '';
-    const depBots = ['renovate[bot]', 'dependabot[bot]'];
+    const depBots = ['renovate[bot]', 'dependabot[bot]', 'claude[bot]'];
     if (depBots.includes(authorLogin)) {
       core.setOutput('has_tests', 'false');
       core.info(`Commit authored by ${authorLogin} — skipping test review`);

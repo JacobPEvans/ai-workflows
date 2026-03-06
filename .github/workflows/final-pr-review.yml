@@ -9,6 +9,10 @@ name: Final PR Review
 on:
   workflow_call:
     inputs:
+      daily_run_limit:
+        description: "Max workflow runs per day (0 to disable)"
+        type: string
+        default: "5"
       allowed_bots:
         description: "Comma-separated bot logins allowed to trigger review (supports *)"
         type: string
@@ -18,6 +22,7 @@ on:
 # Workflow-level permissions set the maximum for all jobs.
 # permissions: {} silently skips all jobs in cross-repo calls.
 permissions:
+  actions: read
   checks: read
   contents: read
   id-token: write
@@ -33,7 +38,8 @@ jobs:
     name: Check review gate
     if: >-
       github.actor != 'renovate[bot]' &&
-      github.actor != 'dependabot[bot]'
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'claude[bot]'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
@@ -58,10 +64,36 @@ jobs:
             const run = require('./.ai-workflows/.github/scripts/final-pr-review/check-gate.js');
             await run({ github, context, core });
 
+  check-daily-limit:
+    name: Check daily run limit
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v6
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Check daily run limit
+        id: check
+        uses: actions/github-script@v8
+        env:
+          DAILY_RUN_LIMIT: ${{ inputs.daily_run_limit }}
+          WORKFLOW_FILE: ${{ github.workflow_ref }}
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/shared/check-daily-limit.js');
+            await run({ github, context, core });
+
   review:
     name: Claude Final Review
-    needs: gate-check
-    if: needs.gate-check.outputs.should_run == 'true'
+    needs: [gate-check, check-daily-limit]
+    if: needs.gate-check.outputs.should_run == 'true' && needs.check-daily-limit.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     permissions:
       checks: read
