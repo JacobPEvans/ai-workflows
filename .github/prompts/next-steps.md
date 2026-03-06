@@ -47,7 +47,7 @@ Choose exactly ONE action based on impact:
 
 ### Option A: PR (for simple changes)
 
-If the fix is straightforward (< 50 lines changed, <= 3 files):
+If the fix is straightforward (< 150 lines changed, <= 6 files):
 - Create a PR with the fix
 - Title format: `chore: [description of next step]`
 - Body must explain: what was detected, why this is the logical next step, what changed
