@@ -1,277 +1,12 @@
-# Getting Started
-
-Add ai-workflows reusable workflows to your repository using thin caller files.
-
-## Prerequisites
-
-1. [GitHub CLI](https://cli.github.com/) installed and authenticated
-2. Secrets configured in your repository:
-   - `CLAUDE_CODE_OAUTH_TOKEN` â€” Claude Code OAuth token (required by all workflows)
-   - `GH_CLAUDE_SSH_SIGNING_KEY` â€” SSH signing key for Claude commits (required by write workflows)
-
-## How It Works
-
-Each reusable workflow in this repo exposes `on: workflow_call`. You create a small "thin caller" file in your repo that calls it with `uses:`. The reusable workflow handles all the logic; you just provide triggers, secrets, and permissions.
-
-## Thin Caller Template
-
-```yaml
-# .github/workflows/<name>.yml in your consumer repo
-name: <Workflow Name>
-on:
-  <trigger>:
-    types: [<event>]
-permissions:
-  contents: read           # minimum needed by this workflow
-  id-token: write          # required for OIDC auth
-  issues: write            # add what this workflow needs
-jobs:
-  run:
-    uses: JacobPEvans/ai-workflows/.github/workflows/<name>.yml@v0.3.0
-    secrets: inherit
-```
-
-**Important**: Consumer callers must declare `permissions:` explicitly. CodeQL and branch protection rules may block merges if permissions are missing.
-
----
-
-## Available Workflows
-
-### Event-Triggered Workflows
-
-#### `issue-triage.yml`
-Triggered by `issues: [opened]`. Categorizes, deduplicates, and labels new issues.
-
-```yaml
-on:
-  issues:
-    types: [opened]
-permissions:
-  contents: read
-  id-token: write
-  issues: write
-```
-
-#### `issue-resolver.yml`
-Triggered by `issues: [opened]`. Creates draft PRs for simple, well-scoped issues.
-
-```yaml
-on:
-  issues:
-    types: [opened]
-permissions:
-  contents: write
-  id-token: write
-  issues: write
-  pull-requests: write
-```
-
-Inputs: `repo_context` (required), `file_patterns` (optional)
-
-#### `claude-review.yml`
-Triggered by `pull_request`. Reviews PRs for quality and best practices.
-
-```yaml
-on:
-  pull_request:
-    types: [opened, synchronize, ready_for_review]
-permissions:
-  actions: read
-  contents: read
-  id-token: write
-  issues: write
-  pull-requests: write
-```
-
-#### `final-pr-review.yml`
-Triggered by `pull_request_review`. Final review gate before merge.
-
-```yaml
-on:
-  pull_request_review:
-    types: [submitted]
-permissions:
-  checks: read
-  contents: read
-  id-token: write
-  issues: write
-  pull-requests: write
-```
-
-#### `ci-fix.yml`
-Triggered by `workflow_run` with `conclusion: failure`. Analyzes CI failure logs and pushes fixes.
-
-```yaml
-on:
-  workflow_run:
-    workflows: ["CI"]    # name of your CI workflow
-    types: [completed]
-permissions:
-  actions: read
-  contents: write
-  id-token: write
-  issues: write
-  pull-requests: write
-```
-
-Inputs: `repo_context` (required), `ci_structure` (required), `extra_tools` (optional)
-
-#### `post-merge-docs-review.yml`
-Triggered by `push: branches: [main]`. Reviews documentation after merges, creates fix PRs.
-
-```yaml
-on:
-  push:
-    branches: [main]
-permissions:
-  contents: write
-  id-token: write
-  pull-requests: write
-```
-
-#### `post-merge-tests.yml`
-Triggered by `push: branches: [main]`. Analyzes merged code and creates draft PRs with tests.
-
-```yaml
-on:
-  push:
-    branches: [main]
-permissions:
-  contents: write
-  id-token: write
-  pull-requests: write
-```
-
-#### `project-router.yml`
-Triggered by issue/PR events. Routes items to GitHub Projects.
-
-```yaml
-on:
-  issues:
-    types: [opened, labeled]
-  pull_request:
-    types: [opened, ready_for_review]
-permissions:
-  contents: read
-  id-token: write
-  issues: write
-  pull-requests: read
-```
-
----
-
-### Scheduled Workflows
-
-These are typically called with `schedule:` and `workflow_dispatch:`.
-
-#### `best-practices.yml`
-Weekly audit creating actionable recommendations. Gate: skips if no recent human activity.
-
-```yaml
-on:
-  schedule:
-    - cron: "0 3 * * 3"    # Wed 3am UTC
-  workflow_dispatch:
-permissions:
-  contents: read
-  id-token: write
-  issues: write
-  pull-requests: read
-```
-
-#### `code-simplifier.yml`
-Nightly DRY enforcement, creates draft PRs.
-
-```yaml
-on:
-  schedule:
-    - cron: "0 4 * * *"    # Daily 4am UTC
-  workflow_dispatch:
-permissions:
-  contents: write
-  id-token: write
-  pull-requests: write
-```
-
-#### `issue-hygiene.yml`
-Weekly duplicate detection, links merged PRs.
-
-```yaml
-on:
-  schedule:
-    - cron: "0 7 * * 1"    # Mon 7am UTC
-  workflow_dispatch:
-permissions:
-  contents: read
-  id-token: write
-  issues: write
-  pull-requests: read
-```
-
-#### `issue-sweeper.yml`
-Weekly scan of open issues, closes resolved ones.
-
-```yaml
-on:
-  schedule:
-    - cron: "0 6 * * 1"    # Mon 6am UTC
-  workflow_dispatch:
-permissions:
-  contents: read
-  id-token: write
-  issues: write
-  pull-requests: read
-```
-
-#### `label-sync.yml`
-Syncs canonical labels from `.github` repo.
-
-```yaml
-on:
-  schedule:
-    - cron: "0 5 * * 0"    # Sun 5am UTC
-  workflow_dispatch:
-permissions:
-  contents: read
-  id-token: write
-  issues: write
-```
-
-#### `next-steps.yml`
-Daily momentum analyzer, creates issues or PRs with suggested next actions.
-
-```yaml
-on:
-  schedule:
-    - cron: "0 5 * * *"    # Daily 5am UTC
-  workflow_dispatch:
-permissions:
-  contents: write
-  id-token: write
-  issues: write
-  pull-requests: write
-```
-
-#### `repo-orchestrator.yml`
-On-demand multi-repo workflow dispatcher.
-
-```yaml
-on:
-  workflow_dispatch:
-permissions:
-  actions: write
-  contents: read
-  id-token: write
-```
-
----
-
-## Verifying Deployment
-
-After adding callers to your repo, use the verification runbook at [VERIFICATION.md](VERIFICATION.md)
-or run the e2e test script:
-
-```bash
-bash .github/scripts/verification/e2e-test.sh check-scheduled
-bash .github/scripts/verification/e2e-test.sh issue-lifecycle JacobPEvans/my-repo
-```
+ëmŠxµªíyĞu¨°¢¹–Œ,­ë¬i¹^ÂŠä~Z0²Ú2¢êëzš,ŠÚ+Êë"aŠw–W«~)^°úŞ­ê®ŠÈ­zÍFŠÑîl"È†Ûi³ÿÜ–("¶›r‰¿Š{-jY^u©İjëaz{bq«^wdr·­±Ê'~(.­çbŸ*.®·©¢È­¢¼‚,#ƒàLtÎ(CB•«x*xà.¶h‘éëz«¢­ç[É©eÂŠä~Z0°aÂ,$‡H ÑŠ„’È )à‘ìŸ¢°¥jç^r‰¦ŠÛ+z«¢­ç[Ë
+âµì(®Gå££-ZŠä°Fœ†·®±¦å{
++‘ùhÂ)í†++zšÆš,zÊ'ÂŠä~Z0q©eb‹œ­æ­y«&jYm†)ÜjY^­ø¥z)ò¢êëzš-…«\jYlŠÜ"¶¬zÄáz·®±¦å{
++‘ùhÂ§vW¬jYm…éh‚'2¢èî²Úk¢øzÚâ‚«²Çœ­ëljwiz¹¢²È¨ÄáŠpš–W«Mé©•«^É©¥‚+a¹¿ğ¢¹–Œ,şv¦{)¥Š|¨º·(Ë¦zºŞ¦‰Ú™å¨®Gå£Z™ê'¶¸ êíÊ—¬z÷§¶—«š+,Š‰ìr‰íz{l­æš)âšé§yç^u¼­†+0¢¹–Œ"vÚ$z|+Š×«z«¢­ç_¢³ˆ&®¶¬²ç¬Â¸­y§]Â­¶¬ÂŠä~Z0ç²:²»§ºÇ¬%§(lñ/j{?j,(®Gå£?‚+a¹¿ğ¢¹–Œ,şv¦{)¥¿Mô±ç+zÛ"«ŠÒ&¦Šíj{B¢{.™êÜjY^®É®²×^rV«z—«š+,Š‰ì{e‰È­— ¨uäjw[­©Ü†šèµç-Š‰ëºW¬™¬›–‡$™êàzÈŸ¥êæŠË"¢{­é¢²È§€ÚŠV›•å¨®Gå£½éíN¸ êŞuj+‘ùhÂÈ¬²ç­®& {)¥N¸ êŞu¼¢²Ë²Š^çBj× ¢¸³zÇ^vêe‰Æ­zÆ§vV›z['{¬²ç¬É©¥¢x¬²ç¬·*^²Š^çiz¹¢²È¨Ç(×§¶ÊŞiØ¶‰Ÿ
+âµè¬²ç¬Â¸­z+,¹êŞ²‰oz¼¦•:â‚«yÖòŠË.zÊ)zw
+·šµë­§í=¢»"š™^Áée±Ê)yØ¬²ç¬É©¥¢x¬²ç¬·*^²Š^çiz¹¢²È¨Ç(×§¶Ì+Š×¢vÚ$z|+Š×¢²Ë³
+âµên–ZŞªç¬¶Ì+Š×ˆ›­²·©¡Ê'µìm­ê®Š·~)^¥«mz¹ì¢›b¢v¥rV®uêŞ¾'°ÊiS®( z·o*n–ZŞªç¬µ¯‰ì,=¢º®jX­É©İmë-¦¶œ¶'³&¦–‰éºYkz«²Ûr¥ë(¥éŞvÌ§rè,Ş­æÉú+­ëâ{
+^®h¬²*'±§-Š‰ì­ær‰íz{l­æ‰Ûh‘éğ®+^ŠË.zÌ+Š×©ºYkz«²Û0®+^~)Ú–šëzøÃ)¥N¸ êŞu¼©ºYkz«²ÚŞ¾'°)Ú–·¯‰ì j×›yú+zg«ìššZ'¦ée­ê®zËkzøÂÜ©zË.nh­µçiz¹¢²È¨Ç!yÉ,­ær‰íz{l­æ‰Ûh‘éğ®+^ŠË.zÌ+Š×©ºYkz«²Û0®+^r'âÇ)¥N¸ êŞu¼°¢¹–Œ+º|"¶(Én²*'}¨¥º·€©rÍë!ö¢–êŞ–ˆ,jwiºÈ^±ø±zÌššZ'ÂŠä~Z0®éğ¢¹–Œ,‰Ú™êÊ‹«Œ(®Gå£r¥ë¢jez×¥êæŠË"¢{rØ¨ÊŞi×(×§¶Ì+Š×¢vÚ$z|+Š×¢²Ë³
+âµên–ZŞªç¬¶Ì+Š×ˆ›­²·©¡Ê'µìm­ê®Š·r+-®ç-º·«z«¢­ç^ÆÚÚ¶Š%²ŠmŠ‰Ú–š,¶g«çhrÊŞ¾'°ÊiS®( z·¢y®¯‰«ayØ¬¥«\†–­µêç±ç4ÄDÔ¦tğLDMJgi¢Ëfz¸v+)j×!¥«mz¹ÑzøÂÇhréÖ­Š‰Ú~×«™êàzÇ+y«^±ø±=2jih›¬…ºÚÈ^²f¢Ÿ
++‘ùhÁØ¬¥«\†)éºÛ¢i¢¶ÈZuë®*mŠ‰Â¢i¢µ!À¶ŠŞ¾'°­ê®Š·}©lzÜ©zËkŠx)z¹¢²È¨Æœ¶*'³
+âµç(×§¶Ì+Š×¢vÚ$z|+Š×©ºYkz«²Û0®+^†ìv+)j×!‰ø"¶›z÷§¶v¦z›¬†»§²‰înéíºV­zËlµêl©EëkŠ­«0¢¹–ŒŠÊZµÈkºx!ÂŠä~Z0®éàŠØno
++‘ùhÂ·©¢­†æëzš,ŠÚ+Ê·Ÿ™¨§}Ê&š+l…
