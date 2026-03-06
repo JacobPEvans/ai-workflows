@@ -22,8 +22,8 @@ Reusable AI agent workflows for GitHub Actions. Consumer repos call these with t
 | `issue-triage.yml` | `issues: [opened]` | On issue open | Categorizes, deduplicates, and labels new issues |
 | `label-sync.yml` | `workflow_call` | On-demand | Syncs canonical labels from `.github` repo to all targets |
 | `next-steps.yml` | `workflow_call` | Daily 5am UTC | Analyzes merge momentum, suggests next logical action |
-| `post-merge-docs-review.yml` | `push: [main]` | On merge | Reviews documentation after merges, creates fix PRs |
-| `post-merge-tests.yml` | `push: [main]` | On merge | Analyzes merged code, creates draft PRs with targeted tests |
+| `post-merge-docs-review.yml` | `workflow_call` (dispatch pattern) | On merge | Reviews documentation after merges, creates fix PRs |
+| `post-merge-tests.yml` | `workflow_call` (dispatch pattern) | On merge | Analyzes merged code, creates draft PRs with targeted tests |
 | `project-router.yml` | `workflow_call` | On issue/PR events | Routes items to GitHub Projects with smart field assignment |
 | `repo-orchestrator.yml` | `workflow_call` | On-demand | Hub-and-spoke multi-repo workflow dispatcher |
 
