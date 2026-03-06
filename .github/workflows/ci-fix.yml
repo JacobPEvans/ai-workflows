@@ -171,7 +171,12 @@ jobs:
     name: Claude Fix
     needs: [should-fix, get-failure-details, post-attempt-comment, check-daily-limit]
     # Security: fork guard — only checkout branches from the same repository, never forks
-    if: github.event.workflow_run.head_repository.full_name == github.repository
+    # Also require upstream gate jobs to have passed (explicit `if` replaces the default
+    # dependency-success check, so all conditions must be listed here).
+    if: >-
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      needs.should-fix.outputs.should_run == 'true' &&
+      needs.check-daily-limit.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write

@@ -258,8 +258,9 @@ For post-merge workflows (push→dispatch pattern), `github.actor` in the re-dis
 
 ```javascript
 const authorLogin = commit.author?.login || '';
-const depBots = ['renovate[bot]', 'dependabot[bot]'];
-if (depBots.includes(authorLogin)) {
+const { automationBots } = require('../shared/constants.js');
+// ...
+if (automationBots.includes(authorLogin)) {
   core.setOutput('is_relevant', 'false');
   core.info(`Commit authored by ${authorLogin} — skipping`);
   return;
