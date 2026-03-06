@@ -53,7 +53,7 @@ permissions:
   issues: write
 jobs:
   triage:
-    uses: JacobPEvans/ai-workflows/.github/workflows/issue-triage.yml@v0.3.0
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-triage.yml@v0.9.2
     secrets: inherit
 ```
 
@@ -73,7 +73,7 @@ permissions:
   pull-requests: read
 jobs:
   sweep:
-    uses: JacobPEvans/ai-workflows/.github/workflows/issue-sweeper.yml@v0.3.0
+    uses: JacobPEvans/ai-workflows/.github/workflows/issue-sweeper.yml@v0.9.2
     secrets: inherit
 ```
 
@@ -98,7 +98,6 @@ See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) for the full list of work
     notification/
     post-merge-docs-review/
     post-merge-tests/
-    shared/             # Shared scripts (check-daily-limit.js, constants.js)
     verification/       # E2E test script
   workflows/            # Reusable workflow YAML definitions
 docs/                   # Documentation and verification runbook
