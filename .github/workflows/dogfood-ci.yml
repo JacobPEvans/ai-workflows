@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: ai-ci-${{ github.event.workflow_run.head_branch }}
-  cancel-in-progress: true
+  cancel-in-progress: false  # Never cancel — queue instead to avoid wasting AI tokens
 
 jobs:
   ci-suite:

@@ -36,7 +36,7 @@ permissions:
 
 concurrency:
   group: ci-fix-${{ github.repository }}-${{ github.event.workflow_run.head_branch || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false  # Never cancel — queue instead to avoid wasting AI tokens
 
 jobs:
   should-fix:
