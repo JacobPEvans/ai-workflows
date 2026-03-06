@@ -241,13 +241,14 @@ Supports comma-separated logins or `*` to allow all bots.
 
 ### Layer 3: Dependency bot filtering (`if:` guards)
 
-PR-triggered workflows (claude-review, final-pr-review, ci-fix, issue-linker, pr-issue-linker) add `if:` guards on their first job to skip runs triggered by dependency bots (Renovate, Dependabot). This produces a clean **skipped** (grey) status instead of a **failed** (red) status.
+PR-triggered workflows (claude-review, final-pr-review, ci-fix, issue-linker, pr-issue-linker) add `if:` guards on their first job to skip runs triggered by dependency bots (Renovate, Dependabot) and the Claude GitHub App. This produces a clean **skipped** (grey) status instead of a **failed** (red) status.
 
 ```yaml
   gate-check:
     if: >-
       github.actor != 'renovate[bot]' &&
-      github.actor != 'dependabot[bot]'
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'claude[bot]'
 ```
 
 **Why at the job level**: Skipping the first job causes GitHub to show all downstream jobs as skipped too — a clean grey tree.
