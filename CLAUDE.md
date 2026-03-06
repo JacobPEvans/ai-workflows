@@ -14,11 +14,17 @@ This repo is the single source of truth for CI/CD automation workflows. Each wor
     *.md                            # Prompt files (one per workflow)
   scripts/
     render-prompt.sh                # Shared: envsubst + GITHUB_OUTPUT
-    ci-fix/                         # Extracted JS scripts per workflow
-    best-practices/
+    best-practices/                 # Extracted JS scripts per workflow
+    ci-fail-issue/
+    ci-fix/
+    claude-review/
     final-pr-review/
-    post-merge-tests/
+    issue-linker/
+    issue-resolver/
+    notification/
     post-merge-docs-review/
+    post-merge-tests/
+    verification/
   workflows/
     *.yml                           # Pure YAML workflow definitions (no embedded content)
 ```
