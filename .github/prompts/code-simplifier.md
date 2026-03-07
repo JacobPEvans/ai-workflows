@@ -40,6 +40,16 @@ Examine the files changed in recent commits. Look for these issues in priority o
 - Files or directories that don't clearly describe their contents
 - Inconsistent naming conventions within the same module
 
+## Duplicate Check
+
+Before creating a PR, check for existing open PRs that address the same simplifications:
+
+```bash
+gh pr list --state open --search "refactor: OR chore: OR simplification" --json title,number
+```
+
+If an open PR already covers the same changes, exit without action.
+
 ## Output
 
 Pick up to 3 high-impact improvements from different categories. Create one PR addressing the selected improvements that:
@@ -50,7 +60,7 @@ Pick up to 3 high-impact improvements from different categories. Create one PR a
 - Does not introduce new functionality or change behavior
 - Includes this provenance footer at the bottom of the PR body:
 
-  ```
+  ```text
   ---
   > **AI Provenance** | Workflow: `${WORKFLOW_NAME}` | [Run ${RUN_ID}](${RUN_URL}) | Event: `${EVENT_NAME}` | Actor: `${TRIGGER_ACTOR}`
   ```

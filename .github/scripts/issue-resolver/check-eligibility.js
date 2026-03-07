@@ -30,7 +30,7 @@ module.exports = async ({ github, context, core }) => {
       ).length;
     } catch (e) { /* ignore */ }
   }
-  const PR_DAILY_CEILING = 10;
+  const PR_DAILY_CEILING = 5;
   if (recentBotPRs >= PR_DAILY_CEILING) {
     core.setOutput('should_run', 'false');
     core.info(`Daily bot PR ceiling reached (${recentBotPRs}/${PR_DAILY_CEILING}). Skipping.`);
