@@ -38,8 +38,15 @@ Look for incomplete follow-through:
 
 ## Duplicate Check
 
-Before creating any output, search existing open issues and PRs for overlap.
-If a matching issue or PR already exists, exit without action.
+Before creating any output, explicitly search for existing open issues and PRs:
+
+```bash
+gh pr list --state open --json title,number
+gh issue list --state open --json title,number
+```
+
+Compare your proposed title against each open PR and issue. If any existing item covers
+the same topic (even with different wording), exit without action. Do not create duplicates.
 
 ## Output
 
@@ -48,12 +55,13 @@ Choose exactly ONE action based on impact:
 ### Option A: PR (for simple changes)
 
 If the fix is straightforward (< 150 lines changed, <= 6 files):
+
 - Create a PR with the fix
 - Title format: `chore: [description of next step]`
 - Body must explain: what was detected, why this is the logical next step, what changed
 - PR body must include this provenance footer at the bottom:
 
-  ```
+  ```text
   ---
   > **AI Provenance** | Workflow: `${WORKFLOW_NAME}` | [Run ${RUN_ID}](${RUN_URL}) | Event: `${EVENT_NAME}` | Actor: `${TRIGGER_ACTOR}`
   ```
@@ -61,6 +69,7 @@ If the fix is straightforward (< 150 lines changed, <= 6 files):
 ### Option B: Issue (for complex work)
 
 If the work requires design decisions or significant changes:
+
 - Create an issue describing the suggested next step
 - Title format: `[type]: [description]`
 - Body must include: context from recent merges, specific gap identified, suggested approach

@@ -22,6 +22,16 @@ For each changed file that has testable logic:
 2. If tests exist, check if they cover the newly changed/added functionality
 3. Identify functions, methods, or logic paths that lack test coverage
 
+## Duplicate Check
+
+Before creating a PR, check for existing open PRs that cover the same tests:
+
+```bash
+gh pr list --state open --search "test:" --json title,number
+```
+
+If an open PR already adds tests for the same files or functions, exit without action.
+
 ## Output
 
 If you find uncovered testable code:
@@ -37,7 +47,7 @@ If you find uncovered testable code:
    - Body explaining: what merge triggered this, what's being tested, what existing patterns were followed
 4. Include this provenance footer at the bottom of the PR body:
 
-   ```
+   ```text
    ---
    > **AI Provenance** | Workflow: `${WORKFLOW_NAME}` | [Run ${RUN_ID}](${RUN_URL}) | Event: `${EVENT_NAME}` | Actor: `${TRIGGER_ACTOR}`
    ```
