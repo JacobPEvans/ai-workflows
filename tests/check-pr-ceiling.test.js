@@ -88,6 +88,22 @@ describe('check-pr-ceiling', () => {
     expect(core.infos.some(m => m.includes('2/2'))).toBe(true);
   });
 
+  it('handles PRs with null or missing user gracefully', async () => {
+    const now = new Date();
+    github.rest.pulls.list.mockResolvedValue({
+      data: [
+        { user: null, created_at: new Date(now - 60 * 60 * 1000).toISOString() },
+        { user: undefined, created_at: new Date(now - 2 * 60 * 60 * 1000).toISOString() },
+        { created_at: new Date(now - 3 * 60 * 60 * 1000).toISOString() },
+        { user: { login: 'claude[bot]' }, created_at: new Date(now - 4 * 60 * 60 * 1000).toISOString() },
+      ],
+    });
+
+    await run({ github, context, core });
+
+    expect(core.getOutput('allowed')).toBe('true');
+  });
+
   it('ignores non-bot PRs', async () => {
     const now = new Date();
     github.rest.pulls.list.mockResolvedValue({
