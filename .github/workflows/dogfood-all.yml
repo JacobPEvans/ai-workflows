@@ -53,7 +53,7 @@ jobs:
       id-token: write
       issues: write
       pull-requests: write
-    uses: JacobPEvans/ai-workflows/.github/workflows/suite-all.yml@v0.9.3
+    uses: JacobPEvans/ai-workflows/.github/workflows/suite-all.yml@v0.9.4
     with:
       caller_event: ${{ github.event_name }}
       review_prompt: "Focus on GitHub Actions workflow patterns, reusable workflow design, prompt engineering, and JavaScript script quality"
