@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.10.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.9.4...v0.10.0) (2026-03-08)
+
+
+### Features
+
+* disable automatic triggers on Claude-executing workflows ([912eede](https://github.com/JacobPEvans/ai-workflows/commit/912eedea8cc19f3fdbe73a2d517ba902c364d034))
+
 ## [0.9.4](https://github.com/JacobPEvans/ai-workflows/compare/v0.9.3...v0.9.4) (2026-03-07)
 
 
