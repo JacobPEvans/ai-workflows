@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.10.1](https://github.com/JacobPEvans/ai-workflows/compare/v0.10.0...v0.10.1) (2026-03-19)
+
+
+### Bug Fixes
+
+* standardize release-please workflow and config ([0f6bf97](https://github.com/JacobPEvans/ai-workflows/commit/0f6bf979f20cf9cd245e1008bed156a5b7b8a25c))
+
 ## [0.10.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.9.4...v0.10.0) (2026-03-08)
 
 
