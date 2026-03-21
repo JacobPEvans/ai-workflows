@@ -20,7 +20,7 @@ on:
       model:
         description: "Claude model to use"
         type: string
-        default: "sonnet"
+        default: "anthropic/claude-sonnet-4-6"
       excluded_labels:
         description: "Comma-separated labels that block auto-resolution"
         type: string

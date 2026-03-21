@@ -222,6 +222,7 @@ jobs:
           use_commit_signing: "true"
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
+            --model anthropic/claude-sonnet-4-6
             --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
 
       - name: Comment on failure

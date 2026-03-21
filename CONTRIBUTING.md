@@ -79,7 +79,7 @@ jobs:
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
             --allowedTools "Read,Glob,Grep,LS,Bash(gh issue:*)"
-            --model claude-sonnet-4-6
+            --model anthropic/claude-sonnet-4-6
 ```
 
 For workflows that create commits or PRs, add API commit signing:

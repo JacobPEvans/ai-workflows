@@ -38,7 +38,7 @@ on:
       model:
         description: "Claude model to use"
         type: string
-        default: "claude-sonnet-4-6"
+        default: "anthropic/claude-sonnet-4-6"
       commit_sha:
         description: "Commit SHA for post-merge reviews (from workflow_dispatch)"
         type: string

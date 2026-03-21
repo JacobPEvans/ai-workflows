@@ -13,7 +13,7 @@ on:
       model:
         description: "Claude model to use"
         type: string
-        default: "claude-sonnet-4-6"
+        default: "anthropic/claude-sonnet-4-6"
       allowed_bots:
         description: "Comma-separated bot logins allowed to trigger review (supports *)"
         type: string
