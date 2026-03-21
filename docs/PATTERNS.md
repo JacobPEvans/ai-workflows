@@ -15,7 +15,7 @@ Used by most workflows. Static prompt, read-only tools.
 - `id-token: write` at both workflow-level and job-level permissions
 - Cross-repo checkout of `.github/prompts` and `.github/scripts`
 - `render-prompt.sh` to render the static prompt into a step output
-- `claude-code-action@v1` with `anthropic_api_key:`, `OPENROUTER_BASE_URL` repo variable, `allowed_bots:`, and `prompt:`
+- `claude-code-action@v1` with `anthropic_api_key:`, `ANTHROPIC_BASE_URL` env (sourced from `vars.OPENROUTER_BASE_URL`), `allowed_bots:`, and `prompt:`
 
 ```yaml
 - name: Render prompt
