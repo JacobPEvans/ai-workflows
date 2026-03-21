@@ -72,7 +72,7 @@ jobs:
       - name: Run Claude
         uses: anthropics/claude-code-action@v1
         env:
-          ANTHROPIC_BASE_URL: https://openrouter.ai/api/v1
+          ANTHROPIC_BASE_URL: ${{ vars.ANTHROPIC_BASE_URL }}
         with:
           anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
           allowed_bots: "github-actions"
@@ -86,7 +86,7 @@ For workflows that create commits or PRs, add API commit signing:
 
 ```yaml
         env:
-          ANTHROPIC_BASE_URL: https://openrouter.ai/api/v1
+          ANTHROPIC_BASE_URL: ${{ vars.ANTHROPIC_BASE_URL }}
         with:
           anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
           use_commit_signing: "true"

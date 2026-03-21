@@ -64,7 +64,7 @@ Rendered via `.github/scripts/render-prompt.sh` + `envsubst` in workflow steps.
 
 ## Authentication
 
-Use `OPENROUTER_API_KEY` for all Claude Code workflows, routed via `ANTHROPIC_BASE_URL: https://openrouter.ai/api/v1`. Do not create aliases.
+Use `OPENROUTER_API_KEY` for all Claude Code workflows, routed via `vars.ANTHROPIC_BASE_URL` (repo variable). Do not create aliases.
 
 ## Version Tags
 
