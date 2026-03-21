@@ -36,9 +36,9 @@ on:
         type: string
         default: "1"
       model:
-        description: "Claude model to use"
+        description: "Claude model to use (overrides AI_MODEL vars on child workflows)"
         type: string
-        default: "claude-sonnet-4-6"
+        default: ""
       commit_sha:
         description: "Commit SHA for post-merge reviews (from workflow_dispatch)"
         type: string

@@ -11,9 +11,9 @@ on:
   workflow_call:
     inputs:
       model:
-        description: "Claude model to use"
+        description: "Claude model to use (overrides AI_MODEL_ISSUES and AI_MODEL vars)"
         type: string
-        default: "claude-sonnet-4-6"
+        default: ""
       allowed_bots:
         description: "Comma-separated bot logins allowed to trigger review (supports *)"
         type: string
@@ -101,10 +101,12 @@ jobs:
           contains(inputs.allowed_bots, github.event.pull_request.user.login) ||
           contains(inputs.allowed_bots, '*')
         uses: anthropics/claude-code-action@v1
+        env:
+          ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL }}
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
           allowed_bots: "github-actions"
-          model: ${{ inputs.model }}
+          model: ${{ inputs.model || vars.AI_MODEL_ISSUES || vars.AI_MODEL || 'openrouter/free' }}
           prompt: ${{ steps.render-prompt.outputs.content }}
           claude_args: >-
             --allowedTools "Read,Glob,Grep,LS,Bash(gh pr:*),Bash(gh issue:*),Bash(gh search:*),Bash(gh api:*)"

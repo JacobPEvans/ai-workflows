@@ -18,9 +18,9 @@ on:
         type: string
         default: ""
       model:
-        description: "Claude model to use"
+        description: "Claude model to use (overrides AI_MODEL_PLAN and AI_MODEL vars)"
         type: string
-        default: "sonnet"
+        default: ""
       excluded_labels:
         description: "Comma-separated labels that block auto-resolution"
         type: string
@@ -136,14 +136,16 @@ jobs:
 
       - name: Run Claude Code
         uses: anthropics/claude-code-action@v1
+        env:
+          ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL }}
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
           allowed_bots: "github-actions"
           use_commit_signing: "true"
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
             --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git checkout:*),Bash(git switch:*),Bash(gh pr create:*),Bash(gh issue comment:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
-            ${{ inputs.model != '' && format('--model {0}', inputs.model) || '' }}
+            --model ${{ inputs.model || vars.AI_MODEL_PLAN || vars.AI_MODEL || 'openrouter/free' }}
 
       - name: Comment on failure
         if: failure()

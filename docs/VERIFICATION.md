@@ -7,7 +7,7 @@ Run via `.github/scripts/verification/e2e-test.sh` or manually using the steps b
 
 - `gh` CLI authenticated with sufficient scopes
 - All consumer repos updated to `@v0.5.0`
-- Secrets configured: `CLAUDE_CODE_OAUTH_TOKEN`
+- Secrets configured: `OPENROUTER_API_KEY`
 
 ## Consumer Repos
 
