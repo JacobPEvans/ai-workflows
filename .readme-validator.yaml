@@ -4,4 +4,4 @@ required_sections:
 optional_sections:
   - Contributing
   - License
-  - Authentication & API Providers
+  - Authentication
