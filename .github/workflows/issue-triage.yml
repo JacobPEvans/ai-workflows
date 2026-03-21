@@ -49,8 +49,10 @@ jobs:
 
       - name: Run Claude
         uses: anthropics/claude-code-action@v1
+        env:
+          ANTHROPIC_BASE_URL: https://openrouter.ai/api/v1
         with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
           allowed_bots: "github-actions"
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-

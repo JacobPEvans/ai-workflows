@@ -15,7 +15,7 @@ Used by most workflows. Static prompt, read-only tools.
 - `id-token: write` at both workflow-level and job-level permissions
 - Cross-repo checkout of `.github/prompts` and `.github/scripts`
 - `render-prompt.sh` to render the static prompt into a step output
-- `claude-code-action@v1` with `claude_code_oauth_token:`, `allowed_bots:`, and `prompt:`
+- `claude-code-action@v1` with `anthropic_api_key:`, `ANTHROPIC_BASE_URL` env, `allowed_bots:`, and `prompt:`
 
 ```yaml
 - name: Render prompt
@@ -24,8 +24,10 @@ Used by most workflows. Static prompt, read-only tools.
 
 - name: Run Claude
   uses: anthropics/claude-code-action@v1
+  env:
+    ANTHROPIC_BASE_URL: https://openrouter.ai/api/v1
   with:
-    claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+    anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
     allowed_bots: "github-actions"
     prompt: ${{ steps.prompt.outputs.content }}
     claude_args: >-
@@ -47,8 +49,10 @@ Used by workflows that create commits or PRs. Adds `use_commit_signing: "true"` 
 ```yaml
 - name: Run Claude
   uses: anthropics/claude-code-action@v1
+  env:
+    ANTHROPIC_BASE_URL: https://openrouter.ai/api/v1
   with:
-    claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+    anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
     allowed_bots: "github-actions"
     use_commit_signing: "true"
     prompt: ${{ steps.prompt.outputs.content }}
