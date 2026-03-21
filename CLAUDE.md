@@ -118,7 +118,7 @@ Never use `cancel-in-progress: true` in AI workflows. Cancelling an in-progress 
 
 ### Authentication
 
-Use `OPENROUTER_API_KEY` for all Claude Code workflows, routed via `vars.ANTHROPIC_BASE_URL` (repo variable). Do not create aliases or alternative secret names. See README.md for why OpenRouter is used instead of direct Anthropic or OAuth tokens.
+Use `OPENROUTER_API_KEY` for all Claude Code workflows, routed via `vars.OPENROUTER_BASE_URL` (repo variable). Do not create aliases or alternative secret names. See README.md for why OpenRouter is used instead of direct Anthropic or OAuth tokens.
 
 ### Version Tags for Actions
 

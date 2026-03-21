@@ -83,7 +83,7 @@ See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) for the full list of work
 
 ## Authentication & API Providers
 
-All workflows use [`anthropics/claude-code-action@v1`](https://github.com/anthropics/claude-code-action), which accepts an API key via the `anthropic_api_key` input. This repo routes all requests through **OpenRouter** by reading the `ANTHROPIC_BASE_URL` **repo variable** (`vars.ANTHROPIC_BASE_URL`).
+All workflows use [`anthropics/claude-code-action@v1`](https://github.com/anthropics/claude-code-action), which accepts an API key via the `anthropic_api_key` input. This repo routes all requests through **OpenRouter** by reading the `OPENROUTER_BASE_URL` **repo variable**.
 
 ### Why not `CLAUDE_CODE_OAUTH_TOKEN`?
 
@@ -97,7 +97,7 @@ The Claude Code subscription is cheaper per-token, but using a subscription toke
 1. Create an account at [openrouter.ai](https://openrouter.ai)
 2. Generate a dedicated API key with a **$/day spend limit** (Keys → Create Key → set Credit Limit)
 3. Add the key as `OPENROUTER_API_KEY` in your repo's GitHub Secrets
-4. Add a repo variable `ANTHROPIC_BASE_URL` set to `https://openrouter.ai/api/v1` (Settings → Variables → Actions → New variable)
+4. Add a repo variable `OPENROUTER_BASE_URL` set to `https://openrouter.ai/api/v1` (Settings → Variables → Actions → New variable)
 
 **How it's wired in workflows:**
 
@@ -105,7 +105,7 @@ The Claude Code subscription is cheaper per-token, but using a subscription toke
 - name: Run Claude
   uses: anthropics/claude-code-action@v1
   env:
-    ANTHROPIC_BASE_URL: ${{ vars.ANTHROPIC_BASE_URL }}
+    ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL }}
   with:
     anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
     allowed_bots: "github-actions"

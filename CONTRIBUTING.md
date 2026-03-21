@@ -72,7 +72,7 @@ jobs:
       - name: Run Claude
         uses: anthropics/claude-code-action@v1
         env:
-          ANTHROPIC_BASE_URL: ${{ vars.ANTHROPIC_BASE_URL }}
+          ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL }}
         with:
           anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
           allowed_bots: "github-actions"
@@ -86,7 +86,7 @@ For workflows that create commits or PRs, add API commit signing:
 
 ```yaml
         env:
-          ANTHROPIC_BASE_URL: ${{ vars.ANTHROPIC_BASE_URL }}
+          ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL }}
         with:
           anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
           use_commit_signing: "true"
@@ -139,7 +139,7 @@ Pass `${{ }}` expression values via `env:` on the step, then read via `process.e
 
 ## Authentication
 
-- `OPENROUTER_API_KEY` — used by all Claude Code workflows (routed via `ANTHROPIC_BASE_URL`), no aliases
+- `OPENROUTER_API_KEY` — used by all Claude Code workflows (routed via `OPENROUTER_BASE_URL` repo variable), no aliases
 - Write workflows use `use_commit_signing: "true"` (API mode); no SSH key needed
 
 ## Permissions
