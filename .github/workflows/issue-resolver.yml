@@ -18,9 +18,9 @@ on:
         type: string
         default: ""
       model:
-        description: "Claude model to use"
+        description: "Claude model to use (overrides DEFAULT_MODEL_ISSUE_RESOLVER and DEFAULT_MODEL vars)"
         type: string
-        default: "anthropic/claude-sonnet-4-6"
+        default: ""
       excluded_labels:
         description: "Comma-separated labels that block auto-resolution"
         type: string
@@ -145,7 +145,7 @@ jobs:
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
             --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git checkout:*),Bash(git switch:*),Bash(gh pr create:*),Bash(gh issue comment:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
-            ${{ inputs.model != '' && format('--model {0}', inputs.model) || '' }}
+            --model ${{ inputs.model || vars.DEFAULT_MODEL_ISSUE_RESOLVER || vars.DEFAULT_MODEL }}
 
       - name: Comment on failure
         if: failure()

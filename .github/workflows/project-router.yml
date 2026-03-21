@@ -52,4 +52,4 @@ jobs:
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
             --allowedTools "Read,Glob,Grep,LS,Bash(gh issue:*),Bash(gh pr:*)"
-            --model anthropic/claude-sonnet-4-6
+            --model ${{ vars.DEFAULT_MODEL_PROJECT_ROUTER || vars.DEFAULT_MODEL }}

@@ -115,4 +115,4 @@ jobs:
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
             --allowedTools "Read,Glob,Grep,LS,Bash(gh issue:*),Bash(gh api:*),Bash(gh search:*)"
-            --model anthropic/claude-sonnet-4-6
+            --model ${{ vars.DEFAULT_MODEL_BEST_PRACTICES || vars.DEFAULT_MODEL }}

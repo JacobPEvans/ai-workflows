@@ -153,4 +153,4 @@ jobs:
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
             --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(gh pr:*),Bash(gh api:*),Bash(gh search:*)"
-            --model anthropic/claude-sonnet-4-6
+            --model ${{ vars.DEFAULT_MODEL_DOCS_REVIEW || vars.DEFAULT_MODEL }}
