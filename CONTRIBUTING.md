@@ -79,7 +79,7 @@ jobs:
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
             --allowedTools "Read,Glob,Grep,LS,Bash(gh issue:*)"
-            --model ${{ vars.DEFAULT_MODEL_EXAMPLE || vars.DEFAULT_MODEL }}
+            --model ${{ vars.AI_MODEL_EXAMPLE || vars.AI_MODEL }}
 ```
 
 For workflows that create commits or PRs, add API commit signing:

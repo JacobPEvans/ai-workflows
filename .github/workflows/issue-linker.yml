@@ -11,7 +11,7 @@ on:
   workflow_call:
     inputs:
       model:
-        description: "Claude model to use (overrides DEFAULT_MODEL_ISSUE_LINKER and DEFAULT_MODEL vars)"
+        description: "Claude model to use (overrides AI_MODEL_ISSUES and AI_MODEL vars)"
         type: string
         default: ""
       allowed_bots:
@@ -106,7 +106,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
           allowed_bots: "github-actions"
-          model: ${{ inputs.model || vars.DEFAULT_MODEL_ISSUE_LINKER || vars.DEFAULT_MODEL }}
+          model: ${{ inputs.model || vars.AI_MODEL_ISSUES || vars.AI_MODEL || 'openrouter/free' }}
           prompt: ${{ steps.render-prompt.outputs.content }}
           claude_args: >-
             --allowedTools "Read,Glob,Grep,LS,Bash(gh pr:*),Bash(gh issue:*),Bash(gh search:*),Bash(gh api:*)"

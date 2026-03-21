@@ -18,7 +18,7 @@ on:
         type: string
         default: ""
       model:
-        description: "Claude model to use (overrides DEFAULT_MODEL_ISSUE_RESOLVER and DEFAULT_MODEL vars)"
+        description: "Claude model to use (overrides AI_MODEL_PLAN and AI_MODEL vars)"
         type: string
         default: ""
       excluded_labels:
@@ -145,7 +145,7 @@ jobs:
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
             --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git checkout:*),Bash(git switch:*),Bash(gh pr create:*),Bash(gh issue comment:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
-            --model ${{ inputs.model || vars.DEFAULT_MODEL_ISSUE_RESOLVER || vars.DEFAULT_MODEL }}
+            --model ${{ inputs.model || vars.AI_MODEL_PLAN || vars.AI_MODEL || 'openrouter/free' }}
 
       - name: Comment on failure
         if: failure()

@@ -32,7 +32,7 @@ Used by most workflows. Static prompt, read-only tools.
     prompt: ${{ steps.prompt.outputs.content }}
     claude_args: >-
       --allowedTools "Read,Glob,Grep,LS,Bash(gh issue:*)"
-      --model ${{ vars.DEFAULT_MODEL_EXAMPLE || vars.DEFAULT_MODEL }}
+      --model ${{ vars.AI_MODEL_EXAMPLE || vars.AI_MODEL }}
 ```
 
 ---
@@ -58,7 +58,7 @@ Used by workflows that create commits or PRs. Adds `use_commit_signing: "true"` 
     prompt: ${{ steps.prompt.outputs.content }}
     claude_args: >-
       --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(gh pr:*)"
-      --model ${{ vars.DEFAULT_MODEL_EXAMPLE || vars.DEFAULT_MODEL }}
+      --model ${{ vars.AI_MODEL_EXAMPLE || vars.AI_MODEL }}
 ```
 
 Uses GitHub API commit signing. Commits are automatically verified as the Claude GitHub App. `Bash(git:*)` is restricted to read-only subcommands to prevent unsigned CLI commits.

@@ -153,4 +153,4 @@ jobs:
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
             --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(gh pr:*),Bash(gh api:*),Bash(gh search:*)"
-            --model ${{ vars.DEFAULT_MODEL_TESTS || vars.DEFAULT_MODEL }}
+            --model ${{ vars.AI_MODEL_CODE || vars.AI_MODEL || 'openrouter/free' }}

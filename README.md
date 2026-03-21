@@ -144,6 +144,22 @@ The `anthropic_api_key` input also accepts a direct [Anthropic API key](https://
     anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
+### Model Configuration
+
+All workflows use a 3-tier fallback chain: `inputs.model` (caller override) → `vars.AI_MODEL_{CATEGORY}` → `vars.AI_MODEL` → `openrouter/free` (hardcoded safety net).
+
+| Variable | Category | Recommended Value | Workflows |
+|----------|----------|-------------------|-----------|
+| `AI_MODEL` | Global fallback | `openrouter/auto` | All workflows |
+| `AI_MODEL_PLAN` | Deep planning | `anthropic/claude-opus-4` | issue-resolver |
+| `AI_MODEL_REVIEW` | Code review | `anthropic/claude-sonnet-4` | claude-review, final-pr-review |
+| `AI_MODEL_CODE` | Code generation | `anthropic/claude-sonnet-4` | ci-fix, code-simplifier, post-merge-tests |
+| `AI_MODEL_ISSUES` | Issue management | `anthropic/claude-sonnet-4` | issue-triage, issue-hygiene, issue-sweeper, issue-linker |
+| `AI_MODEL_DOCS` | Documentation | `anthropic/claude-haiku-4` | post-merge-docs-review, best-practices, next-steps |
+| `AI_MODEL_OPS` | Simple operations | `anthropic/claude-haiku-4` | label-sync, project-router, repo-orchestrator |
+
+If no repo variables are set, all workflows automatically fall back to `openrouter/free` — the free-tier model router. This prevents unexpected charges.
+
 ---
 
 ## Architecture

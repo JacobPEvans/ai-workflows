@@ -36,7 +36,7 @@ on:
         type: string
         default: "1"
       model:
-        description: "Claude model to use (overrides DEFAULT_MODEL vars on child workflows)"
+        description: "Claude model to use (overrides AI_MODEL vars on child workflows)"
         type: string
         default: ""
       commit_sha:
