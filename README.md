@@ -116,6 +116,23 @@ The Claude Code subscription is cheaper per-token, but using a subscription toke
 
 [Chutes.ai](https://chutes.ai) is a subscription-based provider with preset daily request limits — cost is self-limiting by design. Pay a flat subscription and get a fixed number of requests per day, so there's no risk of runaway spend.
 
+**Setup:**
+1. Create an account at [chutes.ai](https://chutes.ai)
+2. Generate an API key from your dashboard
+3. Add the key as `CHUTES_API_KEY` in your repo's GitHub Secrets
+4. Add a repo variable `CHUTES_BASE_URL` set to the Chutes.ai API endpoint (Settings → Variables → Actions → New variable)
+
+```yaml
+- name: Run Claude
+  uses: anthropics/claude-code-action@v1
+  env:
+    ANTHROPIC_BASE_URL: ${{ vars.CHUTES_BASE_URL }}
+  with:
+    anthropic_api_key: ${{ secrets.CHUTES_API_KEY }}
+    allowed_bots: "github-actions"
+    prompt: ${{ steps.prompt.outputs.content }}
+```
+
 ### Option 3: Direct Anthropic API
 
 The `anthropic_api_key` input also accepts a direct [Anthropic API key](https://console.anthropic.com/) (`sk-ant-*`). This is the officially supported method per Anthropic, but it's more expensive and less flexible than routing through OpenRouter.
