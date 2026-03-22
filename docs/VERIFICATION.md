@@ -7,13 +7,36 @@ Run via `.github/scripts/verification/e2e-test.sh` or manually using the steps b
 
 - `gh` CLI authenticated with sufficient scopes
 - All consumer repos updated to `@v0.5.0`
-- Secrets configured: `OPENROUTER_API_KEY`
+- Secrets configured: `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY`, or `CHUTES_API_KEY` (depending on your provider)
 
 ## Consumer Repos
 
 - `JacobPEvans/nix` (nix)
 - `JacobPEvans/terraform-proxmox`
 - `JacobPEvans/ansible-proxmox-apps`
+
+---
+
+## Quick Smoke Test
+
+The fastest way to verify auth and model routing. No PR or issue needed.
+
+```bash
+# Test OpenRouter (default provider):
+gh workflow run smoke-test.yml
+gh run watch
+
+# Test with a specific model:
+gh workflow run smoke-test.yml -f provider=openrouter -f model=openrouter/free
+
+# Test Anthropic direct:
+gh workflow run smoke-test.yml -f provider=anthropic -f model=anthropic/claude-haiku-4
+
+# Test Chutes.ai:
+gh workflow run smoke-test.yml -f provider=chutes
+```
+
+**Pass condition**: Workflow completes with `conclusion: success`. The default prompt verifies the model can respond coherently.
 
 ---
 

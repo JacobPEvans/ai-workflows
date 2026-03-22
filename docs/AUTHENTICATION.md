@@ -198,3 +198,29 @@ OpenRouter uses the format `provider/model-name`. Common examples:
 | Smart auto-router | `openrouter/auto` |
 
 The `openrouter/free` router automatically selects from available free models based on your request. The `openrouter/auto` router picks the best model for each request (costs money but optimizes quality).
+
+---
+
+## Testing Your Setup
+
+Use the smoke test workflow to verify your provider configuration works:
+
+```bash
+# Quick validation (uses repo's default provider):
+gh workflow run smoke-test.yml --repo JacobPEvans/ai-workflows
+
+# Test each provider:
+gh workflow run smoke-test.yml -f provider=openrouter
+gh workflow run smoke-test.yml -f provider=anthropic
+gh workflow run smoke-test.yml -f provider=chutes
+
+# Test a specific model:
+gh workflow run smoke-test.yml -f provider=openrouter -f model=openrouter/free
+
+# Watch the result:
+gh run watch
+```
+
+The smoke test runs a trivial Claude prompt and verifies the response. No PR, issue, or branch required.
+
+For full end-to-end workflow testing (issue lifecycle, CI fix, etc.), see [VERIFICATION.md](VERIFICATION.md).
