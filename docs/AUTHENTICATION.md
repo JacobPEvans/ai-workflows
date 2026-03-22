@@ -40,7 +40,7 @@ API providers like OpenRouter and Chutes.ai are purpose-built for programmatic a
 
 ## OpenRouter (default)
 
-[OpenRouter](https://openrouter.ai) provides access to Claude and many other models via a single API key. It's cheaper than the direct Anthropic API and designed for automated workloads.
+[OpenRouter](https://openrouter.ai) provides access to Claude and hundreds of other models via a single API key. For Claude-to-Claude, OpenRouter adds a small platform fee on top of Anthropic's base pricing — but the real value is access to cheaper non-Claude models and free-tier options that dramatically reduce CI costs. You can route expensive planning tasks to Claude Opus while running simpler triage through free models, all from one key.
 
 ### Setup
 
@@ -120,8 +120,8 @@ The `anthropic_api_key` input also accepts a direct [Anthropic API key](https://
 
 **Trade-offs vs. OpenRouter:**
 
-- More expensive (no routing discounts)
-- No multi-model access (Claude only)
+- Cheapest option for Claude-to-Claude (no platform fee), but locked to Claude models only
+- No access to cheaper non-Claude models or free-tier alternatives
 - No built-in per-key spend limits (use [Anthropic usage limits](https://console.anthropic.com/settings/limits) instead)
 - Simpler setup (one secret, no base URL variable)
 
