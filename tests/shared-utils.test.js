@@ -1,5 +1,5 @@
-const { describe, it, expect } = require('bun:test');
-const { get24hWindowStart } = require('../.github/scripts/shared/utils');
+const { describe, it, expect, spyOn } = require('bun:test');
+const { get24hWindowStart } = require('../.github/scripts/shared/utils.js');
 
 describe('shared/utils', () => {
   describe('get24hWindowStart', () => {
@@ -8,13 +8,16 @@ describe('shared/utils', () => {
       expect(result).toBeInstanceOf(Date);
     });
 
-    it('returns a date approximately 24 hours ago', () => {
-      const before = Date.now() - 24 * 60 * 60 * 1000;
-      const result = get24hWindowStart();
-      const after = Date.now() - 24 * 60 * 60 * 1000;
+    it('returns a date exactly 24 hours ago', () => {
+      const now = 1672574400000;
+      const spy = spyOn(Date, 'now').mockImplementation(() => now);
 
-      expect(result.getTime()).toBeGreaterThanOrEqual(before);
-      expect(result.getTime()).toBeLessThanOrEqual(after);
+      const result = get24hWindowStart();
+      const expected = now - 24 * 60 * 60 * 1000;
+
+      expect(result.getTime()).toBe(expected);
+
+      spy.mockRestore();
     });
 
     it('produces a valid ISO string', () => {
