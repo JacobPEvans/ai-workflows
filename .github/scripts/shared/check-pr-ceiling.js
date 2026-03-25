@@ -1,11 +1,12 @@
-const DEFAULT_CEILING = 5;
+const { PR_DAILY_CEILING } = require('./constants');
+const { get24hWindowStart } = require('./utils');
 
 module.exports = async ({ github, context, core }) => {
   // Ceiling is configurable via env var on the workflow step (e.g., env: { PR_DAILY_CEILING: '10' }).
-  // Falls back to DEFAULT_CEILING if unset or invalid.
+  // Falls back to PR_DAILY_CEILING from shared constants if unset or invalid.
   const parsed = parseInt(process.env.PR_DAILY_CEILING, 10);
-  const ceiling = Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_CEILING;
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const ceiling = Number.isFinite(parsed) && parsed > 0 ? parsed : PR_DAILY_CEILING;
+  const since = get24hWindowStart();
   const botLogins = ['claude[bot]', 'github-actions[bot]'];
 
   let recentBotPRs = 0;
