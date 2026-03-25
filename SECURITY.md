@@ -14,7 +14,7 @@ Security concerns include:
 
 - **Prompt injection**: Issue/PR content passed to Claude via prompt templates — an attacker could craft issue titles or PR descriptions to manipulate Claude's behavior
 - **Permission escalation**: Workflows requesting broader permissions than needed for their task
-- **Secret exposure**: Accidental leakage of `CLAUDE_CODE_OAUTH_TOKEN`
+- **Secret exposure**: Accidental leakage of `OPENROUTER_API_KEY`
 - **Fork safety**: The CI Fix workflow has an explicit fork guard to prevent untrusted code checkout in the privileged `workflow_run` context
 - **OIDC token misuse**: Workflows use `id-token: write` for OIDC token exchange — this should not be granted beyond what's needed
 

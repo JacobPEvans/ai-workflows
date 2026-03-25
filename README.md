@@ -35,7 +35,7 @@ Reusable AI agent workflows for GitHub Actions. Consumer repos call these with t
 
 1. [GitHub CLI](https://cli.github.com/) installed and authenticated
 2. One secret configured in each consumer repo:
-   - `CLAUDE_CODE_OAUTH_TOKEN` — Claude Code OAuth token (required by all workflows)
+   - `OPENROUTER_API_KEY` — [OpenRouter](https://openrouter.ai) API key (required by all workflows)
 
 ### Add a Workflow to Your Repo
 
@@ -78,6 +78,17 @@ jobs:
 ```
 
 See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) for the full list of workflows with required permissions.
+
+---
+
+## Authentication
+
+All workflows route through [OpenRouter](https://openrouter.ai) by default. Add two things to each consumer repo:
+
+1. **Secret**: `OPENROUTER_API_KEY` — your OpenRouter API key (set a $/day spend limit)
+2. **Variable**: `OPENROUTER_BASE_URL` — set to `https://openrouter.ai/api/v1`
+
+If no model variables are configured, workflows automatically fall back to `openrouter/free` (zero cost). See [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) for alternative providers (Chutes.ai, direct Anthropic API) and model configuration.
 
 ---
 

@@ -1,0 +1,7 @@
+required_sections:
+  - Quick Start
+  - Architecture
+optional_sections:
+  - Contributing
+  - License
+  - Authentication
