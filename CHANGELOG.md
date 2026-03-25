@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.11.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.10.1...v0.11.0) (2026-03-25)
+
+
+### Features
+
+* migrate to OpenRouter with AI_MODEL category system ([#116](https://github.com/JacobPEvans/ai-workflows/issues/116)) ([40696f7](https://github.com/JacobPEvans/ai-workflows/commit/40696f7ec5c94080061f75406edbba2219168938))
+
 ## [0.10.1](https://github.com/JacobPEvans/ai-workflows/compare/v0.10.0...v0.10.1) (2026-03-19)
 
 
