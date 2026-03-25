@@ -1,3 +1,6 @@
+const { PR_DAILY_CEILING } = require('../shared/constants');
+const { get24hWindowStart } = require('../shared/utils');
+
 module.exports = async ({ github, context, core }) => {
   // Gate 1: Issue number — from event payload or ISSUE_NUMBER env var (manual dispatch)
   const issueNumber = context.payload.issue?.number
@@ -14,7 +17,7 @@ module.exports = async ({ github, context, core }) => {
   }
 
   // Gate 1b: Unified daily PR ceiling — prevent automation loops
-  const prCeilingSince = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const prCeilingSince = get24hWindowStart();
   const botLogins = ['claude[bot]', 'github-actions[bot]'];
   let recentBotPRs = 0;
   for (const bot of botLogins) {
@@ -26,11 +29,10 @@ module.exports = async ({ github, context, core }) => {
         per_page: 100,
       });
       recentBotPRs += prs.data.filter(
-        pr => pr.user?.login === bot && new Date(pr.created_at) > new Date(prCeilingSince)
+        pr => pr.user?.login === bot && new Date(pr.created_at) > prCeilingSince
       ).length;
     } catch (e) { /* ignore */ }
   }
-  const PR_DAILY_CEILING = 5;
   if (recentBotPRs >= PR_DAILY_CEILING) {
     core.setOutput('should_run', 'false');
     core.info(`Daily bot PR ceiling reached (${recentBotPRs}/${PR_DAILY_CEILING}). Skipping.`);
@@ -152,7 +154,7 @@ module.exports = async ({ github, context, core }) => {
   // Gate 10: Daily resolve limit (applies to all triggers; set daily_limit=0 to disable)
   const dailyLimit = parseInt(process.env.DAILY_LIMIT || '5', 10);
   if (dailyLimit > 0) {
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const since = get24hWindowStart().toISOString();
     const recentComments = await github.paginate(github.rest.issues.listCommentsForRepo, {
       owner: context.repo.owner,
       repo: context.repo.repo,

@@ -1,3 +1,5 @@
+const { get24hWindowStart } = require('./utils');
+
 module.exports = async ({ github, context, core }) => {
   const rawLimit = process.env.DAILY_RUN_LIMIT || '5';
   const dailyRunLimit = parseInt(rawLimit, 10);
@@ -28,7 +30,7 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const since = get24hWindowStart();
 
   // Paginate to count all runs within the 24h window.
   // Runs are returned newest-first, so we stop once we hit one older than the cutoff.

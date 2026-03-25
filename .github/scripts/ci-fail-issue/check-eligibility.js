@@ -1,3 +1,6 @@
+const { ISSUE_DAILY_CEILING } = require('../shared/constants');
+const { get24hWindowStart } = require('../shared/utils');
+
 module.exports = async ({ github, context, core }) => {
   const { owner, repo } = context.repo;
   const run = context.payload.workflow_run;
@@ -6,7 +9,7 @@ module.exports = async ({ github, context, core }) => {
   const marker = '<!-- ci-fail-issue -->';
 
   // Gate 0: Unified daily issue ceiling — prevent automation loops
-  const issueCeilingSince = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const issueCeilingSince = get24hWindowStart();
   const botLogins = ['claude[bot]', 'github-actions[bot]'];
   let recentBotIssues = 0;
   for (const bot of botLogins) {
@@ -14,16 +17,15 @@ module.exports = async ({ github, context, core }) => {
       const issues = await github.rest.issues.listForRepo({
         owner, repo,
         creator: bot,
-        since: issueCeilingSince,
+        since: issueCeilingSince.toISOString(),
         state: 'all',
         per_page: 100,
       });
       recentBotIssues += issues.data.filter(
-        i => !i.pull_request && new Date(i.created_at) > new Date(issueCeilingSince)
+        i => !i.pull_request && new Date(i.created_at) > issueCeilingSince
       ).length;
     } catch (e) { /* ignore */ }
   }
-  const ISSUE_DAILY_CEILING = 5;
   if (recentBotIssues >= ISSUE_DAILY_CEILING) {
     core.info(`Daily bot issue ceiling reached (${recentBotIssues}/${ISSUE_DAILY_CEILING}). Skipping.`);
     core.setOutput('eligible', 'false');
@@ -60,7 +62,7 @@ module.exports = async ({ github, context, core }) => {
   core.info(`Gate 2/3: author is ${authorLogin || '(unknown)'} — pass`);
 
   // Gate 4 & 5: check for duplicates and daily limit
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const since = get24hWindowStart().toISOString();
   const recentIssues = await github.paginate(github.rest.issues.listForRepo, {
     owner, repo, state: 'open', since, per_page: 100
   });
