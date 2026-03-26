@@ -64,7 +64,7 @@ Rendered via `.github/scripts/render-prompt.sh` + `envsubst` in workflow steps.
 
 ## Authentication
 
-Use `OPENROUTER_API_KEY` for all Claude Code workflows, routed via `secrets.OPENROUTER_BASE_URL`. Do not create aliases.
+Use `OPENROUTER_API_KEY` for all Claude Code workflows, routed via `OPENROUTER_BASE_URL` (repo secret). Do not create aliases.
 
 ## Version Tags
 
