@@ -47,7 +47,7 @@ API providers like OpenRouter and Chutes.ai are purpose-built for programmatic a
 1. Create an account at [openrouter.ai](https://openrouter.ai) ([Quick Start](https://openrouter.ai/docs/quickstart))
 2. Generate a dedicated API key with a **$/day spend limit** (Keys → Create Key → set Credit Limit)
 3. Add the key as `OPENROUTER_API_KEY` in your repo's GitHub Secrets (Settings → Secrets → Actions → New secret)
-4. Add a repo variable `OPENROUTER_BASE_URL` set to `https://openrouter.ai/api/v1` (Settings → Variables → Actions → New variable)
+4. Add `OPENROUTER_BASE_URL` as a secret set to `https://openrouter.ai/api/v1` (Settings → Secrets → Actions → New secret)
 
 ### How It's Wired
 
@@ -57,7 +57,7 @@ Every workflow step follows this pattern:
 - name: Run Claude
   uses: anthropics/claude-code-action@v1
   env:
-    ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL }}
+    ANTHROPIC_BASE_URL: ${{ secrets.OPENROUTER_BASE_URL }}
   with:
     anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
     allowed_bots: "github-actions"
