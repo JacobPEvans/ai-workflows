@@ -86,7 +86,7 @@ See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) for the full list of work
 All workflows route through [OpenRouter](https://openrouter.ai) by default. Add two things to each consumer repo:
 
 1. **Secret**: `OPENROUTER_API_KEY` — your OpenRouter API key (set a $/day spend limit)
-2. **Variable**: `OPENROUTER_BASE_URL` — set to `https://openrouter.ai/api/v1`
+2. **Secret**: `OPENROUTER_BASE_URL` — set to `https://openrouter.ai/api/v1`
 
 If no model variables are configured, workflows automatically fall back to `openrouter/free` (zero cost). See [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) for alternative providers (Chutes.ai, direct Anthropic API) and model configuration.
 
