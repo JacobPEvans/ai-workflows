@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.11.2](https://github.com/JacobPEvans/ai-workflows/compare/v0.11.1...v0.11.2) (2026-03-26)
+
+
+### Bug Fixes
+
+* switch OPENROUTER_BASE_URL from vars to secrets ([#123](https://github.com/JacobPEvans/ai-workflows/issues/123)) ([6c8add4](https://github.com/JacobPEvans/ai-workflows/commit/6c8add4c217d65a2b15a895ccc085c779379e7ae))
+
 ## [0.11.1](https://github.com/JacobPEvans/ai-workflows/compare/v0.11.0...v0.11.1) (2026-03-25)
 
 
