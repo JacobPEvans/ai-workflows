@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.11.3](https://github.com/JacobPEvans/ai-workflows/compare/v0.11.2...v0.11.3) (2026-04-03)
+
+
+### Bug Fixes
+
+* rename "Copilot coding agent" → "Copilot cloud agent" ([#127](https://github.com/JacobPEvans/ai-workflows/issues/127)) ([03c1cd8](https://github.com/JacobPEvans/ai-workflows/commit/03c1cd84f9edb55c92bbf449371b6e23df58ad73))
+
 ## [0.11.2](https://github.com/JacobPEvans/ai-workflows/compare/v0.11.1...v0.11.2) (2026-03-26)
 
 
