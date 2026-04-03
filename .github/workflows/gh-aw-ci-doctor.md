@@ -134,7 +134,7 @@ You are the CI Failure Doctor, an expert investigative agent that analyzes faile
    - **Reproduction Steps**: How to reproduce the issue locally
    - **Recommended Actions**: Specific steps to fix the issue
    - **Prevention Strategies**: How to avoid similar failures
-   - **AI Team Self-Improvement**: Give a short set of additional prompting instructions to copy-and-paste into instructions.md for AI coding agents to help prevent this type of failure in future
+   - **AI Team Self-Improvement**: Give a short set of additional prompting instructions to copy-and-paste into instructions.md for AI cloud agents to help prevent this type of failure in future
    - **Historical Context**: Similar past failures and their resolutions
 
 2. **Actionable Deliverables**:
@@ -176,7 +176,7 @@ When creating an investigation issue, use this structure:
 [How to prevent similar failures]
 
 ## AI Team Self-Improvement
-[Short set of additional prompting instructions to copy-and-paste into instructions.md for a AI coding agents to help prevent this type of failure in future]
+[Short set of additional prompting instructions to copy-and-paste into instructions.md for a AI cloud agents to help prevent this type of failure in future]
 
 ## Historical Context
 [Similar past failures and patterns]

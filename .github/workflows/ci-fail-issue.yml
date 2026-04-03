@@ -1,7 +1,7 @@
 # CI Failure Issue Creator
 #
 # Reusable workflow: called by consumer repos when CI fails on main.
-# Checks 5 safety gates, then creates a GitHub issue assigned to Copilot coding agent.
+# Checks 5 safety gates, then creates a GitHub issue assigned to Copilot cloud agent.
 #
 # Safety gates (in check-eligibility.js):
 #   1. conclusion == 'failure' (not cancelled/timed_out)
