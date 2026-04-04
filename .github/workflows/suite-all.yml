@@ -15,7 +15,6 @@
 #   uses: JacobPEvans/ai-workflows/.github/workflows/suite-all.yml@v0.8.0
 #   with:
 #     caller_event: ${{ github.event_name }}
-#     review_prompt: "Repo-specific review focus"
 #     commit_sha: ${{ inputs.commit_sha || github.sha }}
 
 name: "Suite: All"
@@ -27,18 +26,6 @@ on:
         description: "Event that triggered the caller (pass github.event_name)"
         type: string
         required: true
-      review_prompt:
-        description: "Repo-specific review focus for Claude Code Review"
-        type: string
-        default: ""
-      max_reviews:
-        description: "Max Claude reviews per PR (0 = unlimited)"
-        type: string
-        default: "1"
-      model:
-        description: "Claude model to use (overrides AI_MODEL vars on child workflows)"
-        type: string
-        default: ""
       commit_sha:
         description: "Commit SHA for post-merge reviews (from workflow_dispatch)"
         type: string
@@ -70,9 +57,6 @@ jobs:
     uses: ./.github/workflows/suite-pr.yml
     with:
       caller_event: ${{ inputs.caller_event }}
-      review_prompt: ${{ inputs.review_prompt }}
-      max_reviews: ${{ inputs.max_reviews }}
-      model: ${{ inputs.model }}
       allowed_bots: ${{ inputs.allowed_bots }}
     secrets: inherit
 
