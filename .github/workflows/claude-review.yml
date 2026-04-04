@@ -1,7 +1,7 @@
 # Claude Code Review
 #
 # DEPRECATED 2026-04-04: Removed in favor of Gemini + Copilot PR reviews.
-# This workflow is disabled. Callers will receive a "not found" error.
+# This workflow is disabled. Callers will silently skip (all jobs gated with if: false).
 # To fully remove: delete this file and all caller references.
 #
 # Reusable workflow: automatic PR review with inline comments + interactive mode.
@@ -14,7 +14,7 @@ name: Claude Code Review
 
 on:
   # DEPRECATED 2026-04-04: Removed in favor of Gemini + Copilot PR reviews.
-  # This workflow is disabled. Callers will receive a "not found" error.
+  # This workflow is disabled. Callers will silently skip (all jobs gated with if: false).
   # To fully remove: delete this file and all caller references.
   workflow_call:
     inputs:
