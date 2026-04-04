@@ -1,6 +1,6 @@
 # Suite: PR Reviews
 #
-# Reusable workflow: bundles claude-review + final-pr-review.
+# Reusable workflow: bundles final-pr-review.
 # Callers pass caller_event to route to the correct individual workflow.
 #
 # Internal uses: paths are relative — they resolve to the same ref as this
@@ -10,7 +10,6 @@
 #   uses: JacobPEvans/ai-workflows/.github/workflows/suite-pr.yml@v0.8.0
 #   with:
 #     caller_event: ${{ github.event_name }}
-#     review_prompt: "Repo-specific review focus"
 
 name: "Suite: PR Reviews"
 
@@ -21,18 +20,6 @@ on:
         description: "Event that triggered the caller (pass github.event_name)"
         type: string
         required: true
-      review_prompt:
-        description: "Repo-specific review focus for Claude Code Review"
-        type: string
-        default: ""
-      max_reviews:
-        description: "Max Claude reviews per PR (0 = unlimited)"
-        type: string
-        default: "1"
-      model:
-        description: "Claude model to use (overrides AI_MODEL vars on child workflows)"
-        type: string
-        default: ""
       allowed_bots:
         description: "Comma-separated bot logins allowed to trigger review (supports *)"
         type: string
@@ -51,18 +38,6 @@ permissions:
   pull-requests: write
 
 jobs:
-  claude-review:
-    if: >-
-      inputs.caller_event == 'pull_request' ||
-      inputs.caller_event == 'issue_comment'
-    uses: ./.github/workflows/claude-review.yml
-    with:
-      review_prompt: ${{ inputs.review_prompt }}
-      max_reviews: ${{ inputs.max_reviews }}
-      model: ${{ inputs.model }}
-      allowed_bots: ${{ inputs.allowed_bots }}
-    secrets: inherit
-
   final-pr-review:
     if: >-
       inputs.caller_event == 'pull_request_review' ||
