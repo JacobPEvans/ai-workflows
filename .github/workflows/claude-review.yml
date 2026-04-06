@@ -65,6 +65,13 @@ jobs:
 
   review:
     if: false
+    # Original conditions (preserved for reuse in future AI review workflows):
+    #   needs.check-daily-limit.outputs.should_run == 'true' &&
+    #   github.actor != 'renovate[bot]' &&
+    #   github.actor != 'dependabot[bot]' &&
+    #   github.actor != 'claude[bot]' &&
+    #   github.event.pull_request != null &&
+    #   !contains(github.event.pull_request.labels.*.name, 'ai:skip-review')
     name: Claude Code Review
     needs: check-daily-limit
     runs-on: ubuntu-latest
@@ -137,6 +144,9 @@ jobs:
 
   interactive:
     if: false
+    # Original conditions (preserved for reuse):
+    #   github.event.comment != null &&
+    #   contains(github.event.comment.body, '@claude')
     name: Claude Interactive
     runs-on: ubuntu-latest
     permissions:
