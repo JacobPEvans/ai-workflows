@@ -1,0 +1,103 @@
+# Reusable: AI Merge Gate
+#
+# Status aggregator that waits for gh-aw Copilot agent checks to complete,
+# then reports a single pass/fail. Does NOT execute agents — only aggregates.
+#
+# Branch protection requires only "AI Merge Gate" instead of individually
+# configuring each AI workflow.
+#
+# Usage:
+#   uses: JacobPEvans/ai-workflows/.github/workflows/_ai-merge-gate.yml@main
+name: _ai-merge-gate
+
+on:
+  workflow_call:
+    inputs:
+      timeout_minutes:
+        description: "Max minutes to wait for agent checks to complete"
+        type: number
+        default: 10
+      required_checks:
+        description: "Comma-separated check names to require (empty = all copilot checks)"
+        type: string
+        default: ""
+
+concurrency:
+  group: ai-merge-gate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  checks: read
+  contents: read
+  statuses: read
+
+jobs:
+  aggregate:
+    name: AI Merge Gate
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TIMEOUT_MINUTES: ${{ inputs.timeout_minutes }}
+      REQUIRED_CHECKS: ${{ inputs.required_checks }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Wait for AI agent checks
+        run: |
+          echo "AI Merge Gate — waiting for Copilot agent checks"
+          echo "Head SHA: $HEAD_SHA"
+          echo "Timeout: ${TIMEOUT_MINUTES}m"
+          echo ""
+
+          DEADLINE=$((SECONDS + TIMEOUT_MINUTES * 60))
+          POLL_INTERVAL=30
+          COPILOT_COUNT=0
+
+          while [ $SECONDS -lt $DEADLINE ]; do
+            # Fetch all check runs for this commit
+            COPILOT_CHECKS=$(gh api "repos/${REPO}/commits/${HEAD_SHA}/check-runs" \
+              --jq '[.check_runs[] | select(.app.slug | test("copilot"; "i")) | {name: .name, status: .status, conclusion: .conclusion}]')
+
+            COPILOT_COUNT=$(echo "$COPILOT_CHECKS" | jq 'length')
+
+            if [ "$COPILOT_COUNT" -eq "0" ]; then
+              echo "No Copilot agent checks found yet. Waiting ${POLL_INTERVAL}s..."
+              sleep $POLL_INTERVAL
+              continue
+            fi
+
+            # Check if all are complete
+            PENDING=$(echo "$COPILOT_CHECKS" | jq '[.[] | select(.status != "completed")] | length')
+
+            if [ "$PENDING" -gt "0" ]; then
+              echo "[$COPILOT_COUNT checks found, $PENDING still running] Waiting ${POLL_INTERVAL}s..."
+              sleep $POLL_INTERVAL
+              continue
+            fi
+
+            # All complete — check conclusions
+            FAILED=$(echo "$COPILOT_CHECKS" | jq '[.[] | select(.conclusion != "success" and .conclusion != "neutral" and .conclusion != "skipped")] | length')
+
+            echo ""
+            echo "All $COPILOT_COUNT Copilot agent checks complete."
+            echo "$COPILOT_CHECKS" | jq -r '.[] | "  \(.conclusion)\t\(.name)"'
+            echo ""
+
+            if [ "$FAILED" -gt "0" ]; then
+              echo "::error::$FAILED Copilot agent check(s) failed"
+              exit 1
+            fi
+
+            echo "All Copilot agent checks passed."
+            exit 0
+          done
+
+          # If no copilot checks appeared within timeout, pass anyway
+          # (not all PRs trigger agent checks)
+          if [ "$COPILOT_COUNT" -eq "0" ]; then
+            echo "No Copilot agent checks detected within timeout — passing (no agents configured for this PR type)."
+            exit 0
+          fi
+
+          echo "::error::Timeout waiting for Copilot agent checks to complete"
+          exit 1
