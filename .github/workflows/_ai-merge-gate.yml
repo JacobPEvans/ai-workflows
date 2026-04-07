@@ -17,10 +17,7 @@ on:
         description: "Max minutes to wait for agent checks to complete"
         type: number
         default: 10
-      required_checks:
-        description: "Comma-separated check names to require (empty = all copilot checks)"
-        type: string
-        default: ""
+  workflow_dispatch:
 
 concurrency:
   group: ai-merge-gate-${{ github.workflow }}-${{ github.ref }}
@@ -38,7 +35,6 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       TIMEOUT_MINUTES: ${{ inputs.timeout_minutes }}
-      REQUIRED_CHECKS: ${{ inputs.required_checks }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       REPO: ${{ github.repository }}
     steps:

@@ -16,6 +16,7 @@ network:
 tools:
   github:
     toolsets: [default]
+  bash: true
 safe-outputs:
   create-pull-request:
     title-prefix: "[doc-drift] "
@@ -50,8 +51,14 @@ functionality, create a draft PR with targeted documentation fixes.
 Fetch the diff from the most recent push to main:
 
 ```bash
-# Get the list of changed files in the triggering commit(s)
-git log --name-only --pretty=format: -1 HEAD | sort | uniq | grep -v '^$' > /tmp/changed_files.txt
+# Get the list of changed files in the triggering push (handles multi-commit pushes)
+# Uses the before..after range from the push event, falling back to single commit
+BEFORE="${{ github.event.before }}"
+if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+  git log --name-only --pretty=format: "${BEFORE}..HEAD" | sort | uniq | grep -v '^$' > /tmp/changed_files.txt
+else
+  git log --name-only --pretty=format: -1 HEAD | sort | uniq | grep -v '^$' > /tmp/changed_files.txt
+fi
 
 # Separate code files from documentation files
 grep -vE '\.(md|txt|rst|adoc)$' /tmp/changed_files.txt > /tmp/changed_code.txt 2>/dev/null || true
