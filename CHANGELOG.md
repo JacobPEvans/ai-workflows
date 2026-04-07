@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.11.4](https://github.com/JacobPEvans/ai-workflows/compare/v0.11.3...v0.11.4) (2026-04-07)
+
+
+### Bug Fixes
+
+* disable claude-review workflow — replaced by Gemini + Copilot ([#130](https://github.com/JacobPEvans/ai-workflows/issues/130)) ([3fc7892](https://github.com/JacobPEvans/ai-workflows/commit/3fc7892413412a02a6f7bed5fd81eb48c3cb51da))
+
 ## [0.11.3](https://github.com/JacobPEvans/ai-workflows/compare/v0.11.2...v0.11.3) (2026-04-03)
 
 
