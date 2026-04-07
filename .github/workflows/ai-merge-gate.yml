@@ -1,0 +1,8 @@
+name: AI Merge Gate
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  gate:
+    uses: ./.github/workflows/_ai-merge-gate.yml
+    secrets: inherit
