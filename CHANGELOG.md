@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.11.4...v0.12.0) (2026-04-08)
+
+
+### Features
+
+* add AI merge gate and documentation drift detector ([#132](https://github.com/JacobPEvans/ai-workflows/issues/132)) ([0f255e1](https://github.com/JacobPEvans/ai-workflows/commit/0f255e19a948e4165faf8f7117aed516aaffe1b3))
+
 ## [0.11.4](https://github.com/JacobPEvans/ai-workflows/compare/v0.11.3...v0.11.4) (2026-04-07)
 
 
