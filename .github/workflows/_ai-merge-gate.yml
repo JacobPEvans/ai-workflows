@@ -1,0 +1,35 @@
+# Reusable: AI Merge Gate
+#
+# Status aggregator: checks if any Copilot agent runs have failed on this PR.
+# Passes immediately if no failures detected (agents still running = pass).
+# Branch protection requires only "AI Merge Gate" as the single AI check.
+#
+# Usage:
+#   uses: JacobPEvans/ai-workflows/.github/workflows/_ai-merge-gate.yml@main
+name: _ai-merge-gate
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  checks: read
+  contents: read
+
+jobs:
+  check:
+    name: AI Merge Gate
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Verify Copilot agent checks
+        run: |
+          FAILED=$(gh api "repos/${{ github.repository }}/commits/${HEAD_SHA}/check-runs" \
+            --jq '[.check_runs[] | select(.app.slug | test("copilot"; "i")) | select(.conclusion == "failure" or .conclusion == "timed_out")] | length')
+          echo "Copilot agent failures: $FAILED"
+          if [ "$FAILED" -gt "0" ]; then
+            echo "::error::$FAILED Copilot agent check(s) failed"
+            exit 1
+          fi
