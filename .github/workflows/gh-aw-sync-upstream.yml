@@ -52,7 +52,10 @@ jobs:
       - name: Recompile workflows
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh aw compile
+        # --action-mode script: fetches gh-aw's actions/ folder to /tmp and
+        # runs setup via bash. Avoids the default "dev" mode which emits
+        # `uses: ./actions/setup` references that fail in consumer repos.
+        run: gh aw compile --action-mode script
 
       - name: Open PR on drift
         uses: peter-evans/create-pull-request@v7

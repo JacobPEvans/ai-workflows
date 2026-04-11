@@ -65,11 +65,14 @@ jobs:
           repository: github/gh-aw
           sparse-checkout: |
             actions
+          path: /tmp/gh-aw/actions-source
+          fetch-depth: 1
           persist-credentials: false
       - name: Setup Scripts
-        uses: ./actions/setup
-        with:
-          destination: ${{ runner.temp }}/gh-aw/actions
+        run: |
+          bash /tmp/gh-aw/actions-source/actions/setup/setup.sh
+        env:
+          INPUT_DESTINATION: ${{ runner.temp }}/gh-aw/actions
       - name: Generate agentic run info
         id: generate_aw_info
         env:
@@ -107,7 +110,6 @@ jobs:
           sparse-checkout: |
             .github
             .agents
-            actions/setup
           sparse-checkout-cone-mode: true
           fetch-depth: 1
       - name: Check workflow file timestamps
@@ -238,7 +240,7 @@ jobs:
         run: bash ${RUNNER_TEMP}/gh-aw/actions/print_prompt_summary.sh
       - name: Upload activation artifact
         if: success()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           name: activation
           path: |
@@ -275,11 +277,14 @@ jobs:
           repository: github/gh-aw
           sparse-checkout: |
             actions
+          path: /tmp/gh-aw/actions-source
+          fetch-depth: 1
           persist-credentials: false
       - name: Setup Scripts
-        uses: ./actions/setup
-        with:
-          destination: ${{ runner.temp }}/gh-aw/actions
+        run: |
+          bash /tmp/gh-aw/actions-source/actions/setup/setup.sh
+        env:
+          INPUT_DESTINATION: ${{ runner.temp }}/gh-aw/actions
       - name: Set runtime paths
         id: set-runtime-paths
         run: |
@@ -767,7 +772,7 @@ jobs:
       - name: Upload agent artifacts
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           name: agent
           path: |
@@ -783,7 +788,7 @@ jobs:
       - name: Upload firewall audit logs
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           name: firewall-audit-logs
           path: |
@@ -817,11 +822,14 @@ jobs:
           repository: github/gh-aw
           sparse-checkout: |
             actions
+          path: /tmp/gh-aw/actions-source
+          fetch-depth: 1
           persist-credentials: false
       - name: Setup Scripts
-        uses: ./actions/setup
-        with:
-          destination: ${{ runner.temp }}/gh-aw/actions
+        run: |
+          bash /tmp/gh-aw/actions-source/actions/setup/setup.sh
+        env:
+          INPUT_DESTINATION: ${{ runner.temp }}/gh-aw/actions
       - name: Download agent output artifact
         id: download-agent-output
         continue-on-error: true
@@ -939,11 +947,14 @@ jobs:
           repository: github/gh-aw
           sparse-checkout: |
             actions
+          path: /tmp/gh-aw/actions-source
+          fetch-depth: 1
           persist-credentials: false
       - name: Setup Scripts
-        uses: ./actions/setup
-        with:
-          destination: ${{ runner.temp }}/gh-aw/actions
+        run: |
+          bash /tmp/gh-aw/actions-source/actions/setup/setup.sh
+        env:
+          INPUT_DESTINATION: ${{ runner.temp }}/gh-aw/actions
       - name: Download agent output artifact
         id: download-agent-output
         continue-on-error: true
@@ -985,7 +996,7 @@ jobs:
             await main();
       - name: Upload Safe Output Items
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         with:
           name: safe-output-items
           path: /tmp/gh-aw/safe-output-items.jsonl
