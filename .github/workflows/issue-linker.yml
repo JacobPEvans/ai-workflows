@@ -58,7 +58,7 @@ jobs:
 
       - name: Check eligibility
         id: check
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const run = require('./.ai-workflows/.github/scripts/issue-linker/check-eligibility.js');

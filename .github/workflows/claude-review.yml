@@ -54,7 +54,7 @@ jobs:
 
       - name: Check daily run limit
         id: check
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           DAILY_RUN_LIMIT: ${{ inputs.daily_run_limit }}
           WORKFLOW_FILE: ${{ github.workflow_ref }}
@@ -99,7 +99,7 @@ jobs:
 
       - name: Check review eligibility
         id: eligibility
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           MAX_REVIEWS: ${{ inputs.max_reviews }}
