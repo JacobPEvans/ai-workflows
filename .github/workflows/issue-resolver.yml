@@ -85,7 +85,7 @@ jobs:
           ISSUE_NUMBER: ${{ inputs.issue_number }}
           ALLOWED_AUTHORS: ${{ inputs.allowed_authors }}
           DAILY_LIMIT: ${{ inputs.daily_limit }}
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const run = require('./.ai-workflows/.github/scripts/issue-resolver/check-eligibility.js');
@@ -149,7 +149,7 @@ jobs:
 
       - name: Comment on failure
         if: failure()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

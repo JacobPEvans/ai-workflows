@@ -50,7 +50,7 @@ jobs:
 
       - name: Check bot PR ceiling
         id: check
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const run = require('./.ai-workflows/.github/scripts/shared/check-pr-ceiling.js');
@@ -73,7 +73,7 @@ jobs:
 
       - name: Check if changes are doc-relevant
         id: check
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           OVERRIDE_SHA: ${{ inputs.commit_sha || '' }}
         with:
@@ -98,7 +98,7 @@ jobs:
 
       - name: Check daily run limit
         id: check
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           DAILY_RUN_LIMIT: ${{ inputs.daily_run_limit }}
           WORKFLOW_FILE: ${{ github.workflow_ref }}

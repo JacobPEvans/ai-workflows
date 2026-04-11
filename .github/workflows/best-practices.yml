@@ -45,7 +45,7 @@ jobs:
 
       - name: Check for human commits since last recommendation
         id: check
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const run = require('./.ai-workflows/.github/scripts/best-practices/check-recent-activity.js');
@@ -68,7 +68,7 @@ jobs:
 
       - name: Check daily run limit
         id: check
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           DAILY_RUN_LIMIT: ${{ inputs.daily_run_limit }}
           WORKFLOW_FILE: ${{ github.workflow_ref }}
