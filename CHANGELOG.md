@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.1](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.0...v0.12.1) (2026-04-12)
+
+
+### Bug Fixes
+
+* remove deliberate failing test after ci-doctor validation ([#152](https://github.com/JacobPEvans/ai-workflows/issues/152)) ([a366fbc](https://github.com/JacobPEvans/ai-workflows/commit/a366fbc36f341dd0449b21440cc9617b38985381))
+
 ## [0.12.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.11.4...v0.12.0) (2026-04-08)
 
 
