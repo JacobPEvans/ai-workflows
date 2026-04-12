@@ -5,6 +5,12 @@ on:
       - '.github/scripts/**'
       - 'tests/**'
       - 'package.json'
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/**'
+      - 'tests/**'
+      - 'package.json'
   workflow_dispatch:
 permissions:
   contents: read
