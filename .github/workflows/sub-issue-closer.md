@@ -10,4 +10,6 @@ permissions:
   issues: read
 ---
 
+# Sub-Issue Closer 🔒
+
 <!-- Thin wrapper. Upstream is source of truth; see imports above. `gh aw update` re-syncs. -->

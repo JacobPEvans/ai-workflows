@@ -21,4 +21,6 @@ permissions:
   pull-requests: read
 ---
 
+# AI Moderator
+
 <!-- Thin wrapper. Upstream is source of truth; see imports above. `gh aw update` re-syncs. -->

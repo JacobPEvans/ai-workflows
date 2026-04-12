@@ -1,14 +1,16 @@
 ---
 engine: copilot
 imports:
-  - githubnext/agentics/workflows/daily-malicious-code-scan.md@main
+  - githubnext/agentics/workflows/link-checker.md@main
 on:
-  schedule: daily
+  schedule: daily on weekdays
   workflow_dispatch:
 permissions:
-  actions: read
   contents: read
-  security-events: read
+  issues: read
+  pull-requests: read
 ---
+
+# Daily Link Checker & Fixer
 
 <!-- Thin wrapper. Upstream is source of truth; see imports above. `gh aw update` re-syncs. -->
