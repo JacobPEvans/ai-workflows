@@ -2,7 +2,7 @@ name: gh-aw sync upstream imports
 
 # Weekly scheduled sync of upstream agentics imports.
 #
-# The gh-aw-*.md wrappers in this repo reference upstream templates via
+# The thin .md wrappers in this repo reference upstream templates via
 # `imports: githubnext/agentics/workflows/*.md@main`. Those imports are
 # cached under .github/aw/imports/<sha>/ and referenced by the compiled
 # .lock.yml files. Without periodic regeneration, the cached SHA drifts
@@ -52,7 +52,17 @@ jobs:
       - name: Recompile workflows
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh aw compile
+        # --action-tag forces release mode and pins the external
+        # github/gh-aw/actions/setup reference to a specific gh-aw
+        # release. Without this, the default dev mode emits
+        # `uses: ./actions/setup` (a local path that does not exist
+        # in this repo) and workflows fail at runtime in the
+        # activation job.
+        #
+        # Keep this pinned to an actual gh-aw release tag. Renovate
+        # tracks github/gh-aw releases via the github-releases
+        # datasource so this should bump automatically.
+        run: gh aw compile --action-tag v0.68.1
 
       - name: Open PR on drift
         uses: peter-evans/create-pull-request@v8
@@ -74,4 +84,4 @@ jobs:
           labels: automated,gh-aw
           add-paths: |
             .github/aw/**
-            .github/workflows/gh-aw-*.lock.yml
+            .github/workflows/*.lock.yml
