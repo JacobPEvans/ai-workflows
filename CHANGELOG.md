@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.2](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.1...v0.12.2) (2026-04-13)
+
+
+### Bug Fixes
+
+* add automation bots to AI Moderator skip-bots ([#155](https://github.com/JacobPEvans/ai-workflows/issues/155)) ([0ed80f0](https://github.com/JacobPEvans/ai-workflows/commit/0ed80f0489e7992d02ccebe7c338025775e8cd2c))
+
 ## [0.12.1](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.0...v0.12.1) (2026-04-12)
 
 
