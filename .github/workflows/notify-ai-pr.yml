@@ -15,6 +15,12 @@ on:
     secrets:
       GH_SLACK_WEBHOOK_URL_GITHUB_AUTOMATION:
         required: true
+  workflow_dispatch:
+    inputs:
+      bot_login:
+        description: "Bot login to filter PRs for (e.g., claude[bot], copilot[bot])"
+        type: string
+        default: "claude[bot]"
 
 permissions:
   pull-requests: read
