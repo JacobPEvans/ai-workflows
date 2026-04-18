@@ -1,0 +1,51 @@
+# Model Variable Sync
+#
+# Syncs AI model variables from .github/config/models.json to all consumer repos.
+# Change models.json once → all repos update automatically.
+#
+# Consumer repos are listed in the matrix below. Add new repos as the ecosystem grows.
+
+name: Model Variable Sync
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/config/models.json']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: model-variable-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync to ${{ matrix.repo }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        repo:
+          - ai-assistant-instructions
+          - nix-ai
+          - nix-darwin
+          - nix-home
+      fail-fast: false
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Sync model variables
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT_WORKFLOW_DISPATCH }}
+          REPO: JacobPEvans/${{ matrix.repo }}
+        run: |
+          while IFS= read -r var; do
+            value=$(jq -r --arg v "$var" '.[$v]' .github/config/models.json)
+            gh variable set "$var" --repo "$REPO" --body "$value"
+            echo "✓ $var=$value → $REPO"
+          done < <(jq -r 'keys[]' .github/config/models.json)
