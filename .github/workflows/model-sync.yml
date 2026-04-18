@@ -1,16 +1,14 @@
 # Model Variable Sync
 #
-# Syncs AI model variables from .github/config/models.json to all consumer repos.
-# Change models.json once → all repos update automatically.
+# Syncs AI_MODEL* variables from this repo to all consumer repos.
+# Source of truth: repository variables in JacobPEvans/ai-workflows.
+# Update a variable here once → all consumer repos update automatically.
 #
 # Consumer repos are listed in the matrix below. Add new repos as the ecosystem grows.
 
 name: Model Variable Sync
 
 on:
-  push:
-    branches: [main]
-    paths: ['.github/config/models.json']
   workflow_dispatch:
 
 permissions:
@@ -42,5 +40,7 @@ jobs:
       - name: Sync model variables
         env:
           GH_TOKEN: ${{ secrets.GH_PAT_WORKFLOW_DISPATCH }}
+          GH_READ_TOKEN: ${{ github.token }}
+          SOURCE_REPO: ${{ github.repository }}
           REPO: JacobPEvans/${{ matrix.repo }}
-        run: bash .github/scripts/model-sync/sync-variables.sh .github/config/models.json "$REPO"
+        run: bash .github/scripts/model-sync/sync-variables.sh "$REPO"
