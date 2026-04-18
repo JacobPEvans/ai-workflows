@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.3](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.2...v0.12.3) (2026-04-18)
+
+
+### Bug Fixes
+
+* **workflows:** exclude copilot[bot], make notify-ai-pr configurable ([#162](https://github.com/JacobPEvans/ai-workflows/issues/162)) ([4ef802c](https://github.com/JacobPEvans/ai-workflows/commit/4ef802c2e11ddf0f0d88143858ac873aff94344b))
+
 ## [0.12.2](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.1...v0.12.2) (2026-04-13)
 
 
