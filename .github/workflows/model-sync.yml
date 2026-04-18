@@ -43,9 +43,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PAT_WORKFLOW_DISPATCH }}
           REPO: JacobPEvans/${{ matrix.repo }}
-        run: |
-          while IFS= read -r var; do
-            value=$(jq -r --arg v "$var" '.[$v]' .github/config/models.json)
-            gh variable set "$var" --repo "$REPO" --body "$value"
-            echo "✓ $var=$value → $REPO"
-          done < <(jq -r 'keys[]' .github/config/models.json)
+        run: bash .github/scripts/model-sync/sync-variables.sh .github/config/models.json "$REPO"
