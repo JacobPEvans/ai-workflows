@@ -1,22 +1,33 @@
 # AI PR Notification
 #
-# Reusable workflow: notifies #github-automation Slack channel when a Claude-authored PR opens.
-# Filters to claude[bot] authored PRs only. Extracts provenance from PR body footer.
+# Reusable workflow: notifies #github-automation Slack channel when a bot-authored PR opens.
+# Filters by bot_login input (default: claude[bot]). Extracts provenance from PR body footer.
 
 name: AI PR Notification
 
 on:
   workflow_call:
+    inputs:
+      bot_login:
+        description: "Bot login to filter PRs for (e.g., claude[bot], copilot[bot])"
+        type: string
+        default: "claude[bot]"
     secrets:
       GH_SLACK_WEBHOOK_URL_GITHUB_AUTOMATION:
         required: true
+  workflow_dispatch:
+    inputs:
+      bot_login:
+        description: "Bot login to filter PRs for (e.g., claude[bot], copilot[bot])"
+        type: string
+        default: "claude[bot]"
 
 permissions:
   pull-requests: read
 
 jobs:
   notify:
-    if: github.event.pull_request.user.login == 'claude[bot]'
+    if: github.event.pull_request.user.login == inputs.bot_login
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
