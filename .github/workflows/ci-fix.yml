@@ -47,7 +47,8 @@ jobs:
     name: Check if fix needed
     if: >-
       github.actor != 'renovate[bot]' &&
-      github.actor != 'dependabot[bot]'
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'copilot[bot]'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
