@@ -28,6 +28,8 @@ jobs:
       id-token: write
       issues: write
     timeout-minutes: 5
+    env:
+      ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL || secrets.OPENROUTER_BASE_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -49,8 +51,6 @@ jobs:
 
       - name: Run Claude
         uses: anthropics/claude-code-action@v1
-        env:
-          ANTHROPIC_BASE_URL: ${{ secrets.OPENROUTER_BASE_URL }}
         with:
           anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
           allowed_bots: "github-actions"

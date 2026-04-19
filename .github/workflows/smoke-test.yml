@@ -40,24 +40,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  smoke-test:
-    name: "${{ inputs.provider }} / ${{ inputs.model || 'default' }}"
+  smoke-openrouter:
+    name: "openrouter / ${{ inputs.model || 'default' }}"
+    if: inputs.provider == 'openrouter'
     runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL || secrets.OPENROUTER_BASE_URL }}
+    timeout-minutes: 5
     steps:
-      - name: Log test parameters
-        env:
-          PROVIDER: ${{ inputs.provider }}
-          MODEL: ${{ inputs.model || vars.AI_MODEL || 'openrouter/free' }}
-        run: |
-          echo "Provider: $PROVIDER"
-          echo "Model: $MODEL"
-
-      - name: Run Claude (OpenRouter)
-        if: inputs.provider == 'openrouter'
-        id: claude-openrouter
+      - name: Run Claude
         uses: anthropics/claude-code-action@v1
-        env:
-          ANTHROPIC_BASE_URL: ${{ secrets.OPENROUTER_BASE_URL }}
         with:
           anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
           allowed_bots: "github-actions"
@@ -66,9 +58,28 @@ jobs:
             --model ${{ inputs.model || vars.AI_MODEL || 'openrouter/free' }}
             --allowedTools "Bash(echo:*)"
 
-      - name: Run Claude (Anthropic)
-        if: inputs.provider == 'anthropic'
-        id: claude-anthropic
+      - name: Verify response
+        env:
+          DEFAULT_PROMPT: "Respond with exactly this text and nothing else: SMOKE_TEST_PASS"
+          ACTUAL_PROMPT: ${{ inputs.prompt }}
+        run: |
+          echo "=== Smoke Test Results ==="
+          echo "Provider: openrouter"
+          echo "Model: ${{ inputs.model || vars.AI_MODEL || 'openrouter/free' }}"
+          echo "Status: Claude action completed successfully"
+          if [[ "$ACTUAL_PROMPT" == "$DEFAULT_PROMPT" ]]; then
+            echo "=== SMOKE_TEST_PASS ==="
+          else
+            echo "=== Custom prompt used — manual output verification required ==="
+          fi
+
+  smoke-anthropic:
+    name: "anthropic / ${{ inputs.model || 'default' }}"
+    if: inputs.provider == 'anthropic'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Run Claude
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -78,12 +89,31 @@ jobs:
             --model ${{ inputs.model || 'claude-haiku-4' }}
             --allowedTools "Bash(echo:*)"
 
-      - name: Run Claude (Chutes)
-        if: inputs.provider == 'chutes'
-        id: claude-chutes
-        uses: anthropics/claude-code-action@v1
+      - name: Verify response
         env:
-          ANTHROPIC_BASE_URL: ${{ vars.CHUTES_BASE_URL }}
+          DEFAULT_PROMPT: "Respond with exactly this text and nothing else: SMOKE_TEST_PASS"
+          ACTUAL_PROMPT: ${{ inputs.prompt }}
+        run: |
+          echo "=== Smoke Test Results ==="
+          echo "Provider: anthropic"
+          echo "Model: ${{ inputs.model || 'claude-haiku-4' }}"
+          echo "Status: Claude action completed successfully"
+          if [[ "$ACTUAL_PROMPT" == "$DEFAULT_PROMPT" ]]; then
+            echo "=== SMOKE_TEST_PASS ==="
+          else
+            echo "=== Custom prompt used — manual output verification required ==="
+          fi
+
+  smoke-chutes:
+    name: "chutes / ${{ inputs.model || 'default' }}"
+    if: inputs.provider == 'chutes'
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_BASE_URL: ${{ vars.CHUTES_BASE_URL }}
+    timeout-minutes: 5
+    steps:
+      - name: Run Claude
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CHUTES_API_KEY }}
           allowed_bots: "github-actions"
@@ -94,14 +124,12 @@ jobs:
 
       - name: Verify response
         env:
-          PROVIDER: ${{ inputs.provider }}
-          MODEL: ${{ inputs.model || 'default fallback' }}
           DEFAULT_PROMPT: "Respond with exactly this text and nothing else: SMOKE_TEST_PASS"
           ACTUAL_PROMPT: ${{ inputs.prompt }}
         run: |
           echo "=== Smoke Test Results ==="
-          echo "Provider: $PROVIDER"
-          echo "Model: $MODEL"
+          echo "Provider: chutes"
+          echo "Model: ${{ inputs.model || vars.AI_MODEL || 'openrouter/free' }}"
           echo "Status: Claude action completed successfully"
           if [[ "$ACTUAL_PROMPT" == "$DEFAULT_PROMPT" ]]; then
             echo "=== SMOKE_TEST_PASS ==="
