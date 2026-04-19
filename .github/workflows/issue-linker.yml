@@ -75,6 +75,8 @@ jobs:
       issues: write
       pull-requests: write
     timeout-minutes: 10
+    env:
+      ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -101,8 +103,6 @@ jobs:
           contains(inputs.allowed_bots, github.event.pull_request.user.login) ||
           contains(inputs.allowed_bots, '*')
         uses: anthropics/claude-code-action@v1
-        env:
-          ANTHROPIC_BASE_URL: ${{ secrets.OPENROUTER_BASE_URL }}
         with:
           anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
           allowed_bots: "github-actions"
