@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.4](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.3...v0.12.4) (2026-04-19)
+
+
+### Bug Fixes
+
+* **workflows:** move ANTHROPIC_BASE_URL to job-level env ([#165](https://github.com/JacobPEvans/ai-workflows/issues/165)) ([230055f](https://github.com/JacobPEvans/ai-workflows/commit/230055f7ce3f0e1fba9fc2527d7c724cfc5c31b1))
+
 ## [0.12.3](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.2...v0.12.3) (2026-04-18)
 
 
