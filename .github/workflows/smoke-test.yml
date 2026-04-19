@@ -45,7 +45,7 @@ jobs:
     if: inputs.provider == 'openrouter'
     runs-on: ubuntu-latest
     env:
-      ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL }}
+      ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL || secrets.OPENROUTER_BASE_URL }}
     timeout-minutes: 5
     steps:
       - name: Run Claude

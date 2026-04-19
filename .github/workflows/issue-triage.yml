@@ -29,7 +29,7 @@ jobs:
       issues: write
     timeout-minutes: 5
     env:
-      ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL }}
+      ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL || secrets.OPENROUTER_BASE_URL }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
