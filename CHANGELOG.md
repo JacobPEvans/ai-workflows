@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.5](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.4...v0.12.5) (2026-04-21)
+
+
+### Bug Fixes
+
+* **ci:** add gh-aw-pin-refresh workflow and recompile lock files ([3aa3551](https://github.com/JacobPEvans/ai-workflows/commit/3aa35511581e641312bf59b20061f12a002447ff))
+
 ## [0.12.4](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.3...v0.12.4) (2026-04-19)
 
 
