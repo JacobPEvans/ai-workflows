@@ -7,6 +7,9 @@ on:
         description: "Commit SHA to review (leave blank for latest main)"
         required: false
         type: string
+  schedule:
+    # Weekly regression coverage for published reusable workflows (Mondays 12:00 UTC)
+    - cron: "0 12 * * 1"
   # --- DISABLED AUTOMATIC TRIGGERS (restore by uncommenting) ---
   # pull_request:
   #   types: [opened, synchronize]
