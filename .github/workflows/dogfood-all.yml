@@ -64,6 +64,5 @@ jobs:
     uses: JacobPEvans/ai-workflows/.github/workflows/suite-all.yml@v0.12.6
     with:
       caller_event: ${{ github.event_name }}
-      review_prompt: "Focus on GitHub Actions workflow patterns, reusable workflow design, prompt engineering, and JavaScript script quality"
       commit_sha: ${{ inputs.commit_sha || github.sha }}
     secrets: inherit
