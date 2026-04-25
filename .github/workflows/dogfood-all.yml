@@ -61,7 +61,7 @@ jobs:
       id-token: write
       issues: write
       pull-requests: write
-    uses: JacobPEvans/ai-workflows/.github/workflows/suite-all.yml@v0.12.6
+    uses: JacobPEvans/ai-workflows/.github/workflows/suite-all.yml@v0.12.7
     with:
       # Map schedule → workflow_dispatch so cron triggers exercise post-merge-suite
       # (suite-all only routes 'workflow_dispatch' or PR events; 'schedule' would no-op).
