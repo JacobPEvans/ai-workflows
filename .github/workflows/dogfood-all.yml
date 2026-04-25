@@ -63,7 +63,8 @@ jobs:
       pull-requests: write
     uses: JacobPEvans/ai-workflows/.github/workflows/suite-all.yml@v0.12.6
     with:
-      caller_event: ${{ github.event_name }}
-      review_prompt: "Focus on GitHub Actions workflow patterns, reusable workflow design, prompt engineering, and JavaScript script quality"
+      # Map schedule → workflow_dispatch so cron triggers exercise post-merge-suite
+      # (suite-all only routes 'workflow_dispatch' or PR events; 'schedule' would no-op).
+      caller_event: ${{ github.event_name == 'schedule' && 'workflow_dispatch' || github.event_name }}
       commit_sha: ${{ inputs.commit_sha || github.sha }}
     secrets: inherit
