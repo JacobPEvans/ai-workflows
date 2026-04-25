@@ -41,20 +41,18 @@ module.exports = async ({ github, context, core }) => {
     },
   ];
 
-  let response;
   try {
-    response = await fetch(webhookUrl, {
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ blocks }),
     });
+    if (!response.ok) {
+      core.setFailed(`Slack webhook failed: ${response.status} ${response.statusText}`);
+      return;
+    }
   } catch (error) {
     core.setFailed(`Slack webhook request failed: ${error.message}`);
-    return;
-  }
-
-  if (!response.ok) {
-    core.setFailed(`Slack webhook failed: ${response.status} ${response.statusText}`);
     return;
   }
 
