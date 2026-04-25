@@ -515,7 +515,6 @@ on:
       - "CI Gate"
       - "Update flake dependencies"   # add any other watched workflows here
     types: [completed]
-    branches: [main]
 concurrency:
   group: ci-fail-${{ github.event.workflow_run.id }}
   cancel-in-progress: false
