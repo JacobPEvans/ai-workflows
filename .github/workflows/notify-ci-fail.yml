@@ -13,6 +13,7 @@ name: CI Fail Slack Notification
 
 on:
   workflow_call:
+  workflow_dispatch:
     inputs:
       workflow_name:
         type: string

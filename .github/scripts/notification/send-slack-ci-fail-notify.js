@@ -8,6 +8,7 @@ module.exports = async ({ github, context, core }) => {
   const headSha = process.env.HEAD_SHA;
   const headBranch = process.env.HEAD_BRANCH;
   const repoName = process.env.REPO_NAME;
+  const conclusion = process.env.CONCLUSION;
   const eventName = process.env.EVENT_NAME;
 
   const sha7 = headSha ? headSha.slice(0, 7) : 'unknown';
@@ -33,17 +34,24 @@ module.exports = async ({ github, context, core }) => {
       fields: [
         { type: 'mrkdwn', text: `*Branch:*\n${headBranch}` },
         { type: 'mrkdwn', text: `*Commit:*\n\`${sha7}\`` },
-        { type: 'mrkdwn', text: `*Triggered by:*\n${eventName}` },
+        { type: 'mrkdwn', text: `*Event:*\n${eventName}` },
+        { type: 'mrkdwn', text: `*Conclusion:*\n${conclusion}` },
         { type: 'mrkdwn', text: `*Run:*\n<${runUrl}|${runId}>` },
       ],
     },
   ];
 
-  const response = await fetch(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ blocks }),
-  });
+  let response;
+  try {
+    response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blocks }),
+    });
+  } catch (error) {
+    core.setFailed(`Slack webhook request failed: ${error.message}`);
+    return;
+  }
 
   if (!response.ok) {
     core.setFailed(`Slack webhook failed: ${response.status} ${response.statusText}`);
