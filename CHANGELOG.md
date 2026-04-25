@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.7](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.6...v0.12.7) (2026-04-25)
+
+
+### Bug Fixes
+
+* **workflows:** repair dogfood-all so dispatches and cron actually run ([3c7a320](https://github.com/JacobPEvans/ai-workflows/commit/3c7a320098935da8f4a4b3f784e38695baac2e1b)), closes [#175](https://github.com/JacobPEvans/ai-workflows/issues/175)
+
 ## [0.12.6](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.5...v0.12.6) (2026-04-24)
 
 
