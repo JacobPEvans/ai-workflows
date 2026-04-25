@@ -1,0 +1,74 @@
+# CI Fail Slack Notification
+#
+# Reusable workflow: posts to #github-ci-failures when a workflow run fails.
+# Called by consumer repos via a workflow_run trigger.
+#
+# All workflow_run context fields must be passed as inputs because the reusable
+# sees workflow_call event, not the caller's workflow_run event.
+#
+# Required secret (pass via secrets: inherit):
+#   GH_SLACK_WEBHOOK_URL_GITHUB_CI_FAILURES
+
+name: CI Fail Slack Notification
+
+on:
+  workflow_call:
+    inputs:
+      workflow_name:
+        type: string
+        required: true
+      run_url:
+        type: string
+        required: true
+      run_id:
+        type: string
+        required: true
+      head_sha:
+        type: string
+        required: true
+      head_branch:
+        type: string
+        required: true
+      repository:
+        type: string
+        required: true
+      conclusion:
+        type: string
+        required: true
+      event_name:
+        type: string
+        required: true
+    secrets:
+      GH_SLACK_WEBHOOK_URL_GITHUB_CI_FAILURES:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ai-workflows scripts
+        uses: actions/checkout@v6
+        with:
+          repository: JacobPEvans/ai-workflows
+          sparse-checkout: .github/scripts
+          path: .ai-workflows
+
+      - name: Send Slack notification
+        uses: actions/github-script@v9
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.GH_SLACK_WEBHOOK_URL_GITHUB_CI_FAILURES }}
+          WORKFLOW_NAME: ${{ inputs.workflow_name }}
+          RUN_URL:       ${{ inputs.run_url }}
+          RUN_ID:        ${{ inputs.run_id }}
+          HEAD_SHA:      ${{ inputs.head_sha }}
+          HEAD_BRANCH:   ${{ inputs.head_branch }}
+          REPO_NAME:     ${{ inputs.repository }}
+          CONCLUSION:    ${{ inputs.conclusion }}
+          EVENT_NAME:    ${{ inputs.event_name }}
+        with:
+          script: |
+            const run = require('./.ai-workflows/.github/scripts/notification/send-slack-ci-fail-notify.js');
+            await run({ github, context, core });

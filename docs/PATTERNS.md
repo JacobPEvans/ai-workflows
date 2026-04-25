@@ -496,3 +496,53 @@ jobs:
 - Provenance fields: Workflow, Event, Actor, Run link (extracted from PR body footer)
 
 **Implementation**: Extracted script at `.github/scripts/notification/send-slack-pr-notify.js`. Parses the AI Provenance footer from the PR body using regex to populate the Slack message fields.
+
+---
+
+## CI Failure Slack Notification Pattern
+
+Consumer repos receive real-time Slack alerts in `#github-ci-failures` when any watched workflow fails.
+
+**Workflow**: `notify-ci-fail.yml` (reusable)
+**Trigger**: `workflow_run` on failure of specified workflows
+
+**Consumer caller** (added to each repo as `notify-ci-fail.yml`):
+```yaml
+name: CI Fail Notify
+on:
+  workflow_run:
+    workflows:
+      - "CI Gate"
+      - "Update flake dependencies"   # add any other watched workflows here
+    types: [completed]
+    branches: [main]
+concurrency:
+  group: ci-fail-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+permissions:
+  actions: read
+  contents: read
+jobs:
+  slack:
+    if: github.event.workflow_run.conclusion == 'failure'
+    uses: JacobPEvans/ai-workflows/.github/workflows/notify-ci-fail.yml@main
+    with:
+      workflow_name: ${{ github.event.workflow_run.name }}
+      run_url:       ${{ github.event.workflow_run.html_url }}
+      run_id:        ${{ github.event.workflow_run.id }}
+      head_sha:      ${{ github.event.workflow_run.head_sha }}
+      head_branch:   ${{ github.event.workflow_run.head_branch }}
+      repository:    ${{ github.event.workflow_run.repository.full_name }}
+      conclusion:    ${{ github.event.workflow_run.conclusion }}
+      event_name:    ${{ github.event.workflow_run.event }}
+    secrets: inherit
+```
+
+**Required secret** (pass via `secrets: inherit`): `GH_SLACK_WEBHOOK_URL_GITHUB_CI_FAILURES`
+
+**Message content** (Slack Block Kit):
+- Header: ":rotating_light: CI Failure"
+- Repo + workflow name (linked to run)
+- Fields: Branch, Commit (sha7), Triggered by, Run link
+
+**Implementation**: `.github/scripts/notification/send-slack-ci-fail-notify.js`. All `workflow_run` context values are forwarded as typed `workflow_call` inputs; the reusable exposes them only as Node.js `process.env.*` — no shell interpolation of user-controlled data.
