@@ -2,11 +2,6 @@ name: AI Workflows
 
 on:
   workflow_dispatch:
-    inputs:
-      commit_sha:
-        description: "Commit SHA to review (leave blank for latest main)"
-        required: false
-        type: string
   schedule:
     # Weekly regression coverage for published reusable workflows (Mondays 12:00 UTC)
     - cron: "0 12 * * 1"
@@ -27,6 +22,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run post-merge-docs-review.yml --repo "$GITHUB_REPOSITORY" --ref main
       - name: Trigger post-merge tests review
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run post-merge-tests.yml --repo "$GITHUB_REPOSITORY" --ref main
