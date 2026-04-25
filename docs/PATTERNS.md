@@ -525,7 +525,7 @@ permissions:
 jobs:
   slack:
     if: github.event.workflow_run.conclusion == 'failure'
-    uses: JacobPEvans/ai-workflows/.github/workflows/notify-ci-fail.yml@<version>
+    uses: JacobPEvans/ai-workflows/.github/workflows/notify-ci-fail.yml@v0.12.8
     with:
       workflow_name: ${{ github.event.workflow_run.name }}
       run_url:       ${{ github.event.workflow_run.html_url }}
