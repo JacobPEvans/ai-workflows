@@ -493,9 +493,9 @@ jobs:
 **Message content** (Slack Block Kit):
 - Header: "AI-Created PR Opened"
 - PR title + link
-- Provenance fields: Workflow, Event, Actor, Run link (extracted from PR body footer)
+- Author + Repo fields
 
-**Implementation**: Extracted script at `.github/scripts/notification/send-slack-pr-notify.js`. Parses the AI Provenance footer from the PR body using regex to populate the Slack message fields.
+**Implementation**: Posts via the official `slackapi/slack-github-action@v2` (incoming webhook mode) using the templated payload at `.github/payloads/slack/ai-pr-opened.json`. The workflow forwards PR context (`PR_TITLE`, `PR_URL`, `PR_NUMBER`, `PR_AUTHOR`, `REPO_NAME`) as `env:` vars; `payload-templated: true` substitutes them into the Block Kit JSON at action runtime. No custom script is involved.
 
 ---
 
@@ -543,6 +543,6 @@ jobs:
 **Message content** (Slack Block Kit):
 - Header: ":rotating_light: CI Failure"
 - Repo + workflow name (linked to run)
-- Fields: Branch, Commit (sha7), Triggered by, Run link
+- Fields: Branch, Commit, Event, Conclusion, Run link
 
-**Implementation**: `.github/scripts/notification/send-slack-ci-fail-notify.js`. All `workflow_run` context values are forwarded as typed `workflow_call` inputs; the reusable exposes them only as Node.js `process.env.*` — no shell interpolation of user-controlled data.
+**Implementation**: Posts via the official `slackapi/slack-github-action@v2` (incoming webhook mode) using the templated payload at `.github/payloads/slack/ci-fail.json`. All `workflow_run` context values are forwarded as typed `workflow_call` inputs and re-exposed as `env:` vars; `payload-templated: true` substitutes them into the Block Kit JSON at action runtime. The failure-only filter lives in the consumer caller's `if:` clause — there is no custom JavaScript.

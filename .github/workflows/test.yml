@@ -3,12 +3,14 @@ on:
   pull_request:
     paths:
       - '.github/scripts/**'
+      - '.github/payloads/**'
       - 'tests/**'
       - 'package.json'
   push:
     branches: [main]
     paths:
       - '.github/scripts/**'
+      - '.github/payloads/**'
       - 'tests/**'
       - 'package.json'
   workflow_dispatch:
@@ -22,3 +24,5 @@ jobs:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
       - run: bun test
+      - name: Validate Slack payload JSON
+        run: jq empty .github/payloads/slack/*.json

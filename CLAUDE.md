@@ -45,9 +45,9 @@ This repo is the single source of truth for CI/CD automation workflows. Each wor
 
 **AI Provenance**: All PR-creating workflows (`code-simplifier`, `next-steps`, `post-merge-docs-review`, `post-merge-tests`, `issue-resolver`) include a standardized provenance footer in every PR body. `ci-fix` appends provenance to the commit message. See `docs/PATTERNS.md` for the AI Provenance Pattern.
 
-**Slack notifications**: Two reusable notification workflows:
-- `notify-ai-pr.yml` — posts to `#github-automation` when `claude[bot]` opens a PR. Requires `GH_SLACK_WEBHOOK_URL_GITHUB_AUTOMATION`.
-- `notify-ci-fail.yml` — posts to `#github-ci-failures` when a watched workflow run fails. Consumer repos call it via `workflow_run` trigger, passing all run context as typed inputs. Requires `GH_SLACK_WEBHOOK_URL_GITHUB_CI_FAILURES`.
+**Slack notifications**: Two reusable notification workflows. Both post via the official `slackapi/slack-github-action@v2`; Block Kit message bodies live as templated JSON in `.github/payloads/slack/`.
+- `notify-ai-pr.yml` — posts to `#github-automation` when `claude[bot]` opens a PR. Author filtering happens in the job's `if:` clause. Requires `GH_SLACK_WEBHOOK_URL_GITHUB_AUTOMATION`.
+- `notify-ci-fail.yml` — posts to `#github-ci-failures` when a watched workflow run fails. Consumer repos call it via `workflow_run` trigger; the failure-only filter (`conclusion == 'failure'`) lives in the consumer caller's `if:`. All run context is forwarded as typed inputs. Requires `GH_SLACK_WEBHOOK_URL_GITHUB_CI_FAILURES`.
 
 ### Consumer Repo Caller Pattern
 

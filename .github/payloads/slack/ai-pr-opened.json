@@ -1,0 +1,25 @@
+{
+  "blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "AI-Created PR Opened"
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*<${{ env.PR_URL }}|${{ env.REPO_NAME }} #${{ env.PR_NUMBER }}: ${{ env.PR_TITLE }}>*"
+      }
+    },
+    {
+      "type": "section",
+      "fields": [
+        { "type": "mrkdwn", "text": "*Author:*\n${{ env.PR_AUTHOR }}" },
+        { "type": "mrkdwn", "text": "*Repo:*\n${{ env.REPO_NAME }}" }
+      ]
+    }
+  ]
+}
