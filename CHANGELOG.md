@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.8](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.7...v0.12.8) (2026-04-25)
+
+
+### Bug Fixes
+
+* **workflows:** replace dogfood-all nested calls with gh API ([#180](https://github.com/JacobPEvans/ai-workflows/issues/180)) ([d3ec148](https://github.com/JacobPEvans/ai-workflows/commit/d3ec148a8e19509f29daf4767f9e3f54577a0f5f))
+
 ## [0.12.7](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.6...v0.12.7) (2026-04-25)
 
 
