@@ -16,7 +16,6 @@ name: CI Fail Slack Notification
 
 on:
   workflow_call:
-  workflow_dispatch:
     inputs:
       workflow_name:
         type: string
@@ -44,6 +43,32 @@ on:
         required: true
     secrets:
       GH_SLACK_WEBHOOK_URL_GITHUB_CI_FAILURES:
+        required: true
+  workflow_dispatch:
+    inputs:
+      workflow_name:
+        type: string
+        required: true
+      run_url:
+        type: string
+        required: true
+      run_id:
+        type: string
+        required: true
+      head_sha:
+        type: string
+        required: true
+      head_branch:
+        type: string
+        required: true
+      repository:
+        type: string
+        required: true
+      conclusion:
+        type: string
+        required: true
+      event_name:
+        type: string
         required: true
 
 permissions:
