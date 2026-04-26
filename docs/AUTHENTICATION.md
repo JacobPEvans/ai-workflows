@@ -131,7 +131,7 @@ The `anthropic_api_key` input also accepts a direct [Anthropic API key](https://
 
 ### Fallback Chain
 
-Every workflow uses a 3-tier fallback chain to determine which model to use:
+Most workflows use a 3-tier fallback chain to determine which model to use:
 
 ```
 inputs.model → vars.AI_MODEL_{CATEGORY} → vars.AI_MODEL → 'openrouter/free'
@@ -140,8 +140,12 @@ inputs.model → vars.AI_MODEL_{CATEGORY} → vars.AI_MODEL → 'openrouter/free
   (workflow input)   (per-task tier)       (repo-wide)      (safety net)
 ```
 
+**Exceptions** — `post-merge-docs-review` and `post-merge-tests` have no hardcoded fallback.
+They fail with a clear `::error::` message when neither `AI_MODEL_DOCS`/`AI_MODEL_CODE` nor
+`AI_MODEL` is set. Configure at least `AI_MODEL` to enable these workflows.
+
 This means:
-- **If you set nothing**: All workflows use `openrouter/free` — zero cost, rate-limited, lower capability
+- **If you set nothing**: Most workflows use `openrouter/free`; `post-merge-docs-review` and `post-merge-tests` fail at startup with a configuration error
 - **If you set `AI_MODEL` only**: All workflows use that model as a baseline
 - **If you set category vars**: Each workflow type gets an appropriate model tier
 - **If a caller passes `model`**: That overrides everything
@@ -164,7 +168,9 @@ Workflows are grouped by the intelligence level they need:
 
 **Minimal** (zero cost, limited capability):
 ```
-# Set nothing — all workflows use openrouter/free automatically
+# Most workflows fall back to openrouter/free automatically.
+# post-merge-docs-review and post-merge-tests require at least AI_MODEL:
+AI_MODEL = openrouter/free
 ```
 
 **Budget-conscious** (one variable, moderate capability):
