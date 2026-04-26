@@ -90,7 +90,7 @@ All workflows route through [OpenRouter](https://openrouter.ai) by default. Add 
 1. **Secret**: `OPENROUTER_API_KEY` — your OpenRouter API key (set a $/day spend limit)
 2. **Secret**: `OPENROUTER_BASE_URL` — set to `https://openrouter.ai/api/v1`
 
-If no model variables are configured, workflows automatically fall back to `openrouter/free` (zero cost). See [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) for alternative providers (Chutes.ai, direct Anthropic API) and model configuration.
+Most workflows fall back to `openrouter/free` when no model variables are configured. Exceptions: `post-merge-docs-review` and `post-merge-tests` require `AI_MODEL_DOCS`/`AI_MODEL_CODE` or `AI_MODEL` to be set — they fail with a clear error when unconfigured. See [docs/AUTHENTICATION.md](docs/AUTHENTICATION.md) for model configuration and alternative providers.
 
 ---
 

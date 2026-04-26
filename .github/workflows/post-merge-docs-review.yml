@@ -120,6 +120,15 @@ jobs:
     env:
       ANTHROPIC_BASE_URL: ${{ vars.OPENROUTER_BASE_URL || secrets.OPENROUTER_BASE_URL }}
     steps:
+      - name: Validate model configuration
+        env:
+          AI_MODEL_VAR: ${{ vars.AI_MODEL_DOCS || vars.AI_MODEL }}
+        run: |
+          if [ -z "$AI_MODEL_VAR" ]; then
+            echo "::error::AI_MODEL_DOCS or AI_MODEL must be set as an org/repo variable. See docs/AUTHENTICATION.md for configuration."
+            exit 1
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@v6
 
@@ -153,4 +162,4 @@ jobs:
           prompt: ${{ steps.prompt.outputs.content }}
           claude_args: >-
             --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(gh pr:*),Bash(gh api:*),Bash(gh search:*)"
-            --model ${{ vars.AI_MODEL_DOCS || vars.AI_MODEL || 'openrouter/free' }}
+            --model ${{ vars.AI_MODEL_DOCS || vars.AI_MODEL }}
