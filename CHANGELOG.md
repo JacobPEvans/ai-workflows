@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.9](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.8...v0.12.9) (2026-04-26)
+
+
+### Bug Fixes
+
+* **workflows:** remove invalid openrouter/free fallback and add preflight check ([d44891f](https://github.com/JacobPEvans/ai-workflows/commit/d44891f6b9b5b1624278c8c92ca03c8363c4d9a8)), closes [#235](https://github.com/JacobPEvans/ai-workflows/issues/235)
+
 ## [0.12.8](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.7...v0.12.8) (2026-04-25)
 
 
