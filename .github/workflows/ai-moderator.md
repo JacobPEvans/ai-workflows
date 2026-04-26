@@ -19,6 +19,16 @@ permissions:
   contents: read
   issues: read
   pull-requests: read
+# Override upstream safe-outputs.hide-comment with empty allowed-reasons
+# to neuter the tool. Upstream gh-aw fatally fails the safe_outputs job
+# when its hide_comment GraphQL mutation 404s on an already-deleted
+# comment; setting allowed-reasons: [] means the agent has no valid
+# reason to invoke hide_comment, so the failure path is unreachable.
+# Re-evaluate once githubnext/agentics treats hide_comment 404 as non-fatal.
+safe-outputs:
+  hide-comment:
+    max: 1
+    allowed-reasons: []
 ---
 
 # AI Moderator
