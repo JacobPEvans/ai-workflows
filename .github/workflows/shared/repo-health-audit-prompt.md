@@ -14,7 +14,8 @@ Create a parent issue titled `[health-audit] Daily Health Audit - YYYY-MM-DD` (r
 The body should contain a summary table with one row per category, showing Pass/Fail and a brief note.
 Populate this after gathering findings.
 
-Labels: `ai:created`, `type:chore`, `priority:low`, `size:xs`
+The `ai:created` label is applied automatically by `create-issue`. After creating the parent issue,
+use `add-labels` to apply: `type:chore`, `priority:low`, `size:xs`.
 
 ### Step 2: Audit Each Category
 
@@ -99,15 +100,21 @@ If findings exist:
 
 #### Category: Failed Scheduled Workflows
 
-Check all workflows configured with `schedule` triggers. Find any that have failed or not run in the
-last 25 hours (to account for timing variance in daily schedules).
+Check workflows configured with `schedule` triggers. For each, inspect its cron expression to
+determine expected frequency, then apply the matching staleness window:
+
+- **Daily or more frequent** (e.g. `0 * * * *` hourly, `0 0 * * *` daily): flag if no successful
+  run completed in the last 25 hours.
+- **Weekly** (e.g. `0 0 * * 1`): flag if no successful run in the last 8 days.
+- **Monthly or less frequent** (e.g. `0 0 1 * *`): skip — too coarse to flag reliably from a
+  single daily audit pass.
 
 Exclude this workflow itself from the check.
 
 If findings exist:
 
 - Create sub-issue: `[health-audit] Failed Scheduled Workflows`
-- List each affected workflow by name and last run status/date
+- List each affected workflow by name, expected cadence, and last run status/date
 - Apply labels: `type:ci`, `priority:high`, `size:xs`
 
 ### Step 3: Finalize Parent Issue
