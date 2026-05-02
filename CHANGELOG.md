@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.12.11](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.10...v0.12.11) (2026-05-02)
+
+
+### Bug Fixes
+
+* **ai-moderator:** reduce hide_comment blast radius and fix lockfile compilation ([#189](https://github.com/JacobPEvans/ai-workflows/issues/189)) ([946f7d9](https://github.com/JacobPEvans/ai-workflows/commit/946f7d980be5ee13183e997e4a91551e1cfe52bd))
+
 ## [0.12.10](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.9...v0.12.10) (2026-04-29)
 
 
