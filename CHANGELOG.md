@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.13.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.12...v0.13.0) (2026-05-02)
+
+
+### Features
+
+* **shared:** host + trim repo-health-audit in ai-workflows ([#191](https://github.com/JacobPEvans/ai-workflows/issues/191)) ([0f90f66](https://github.com/JacobPEvans/ai-workflows/commit/0f90f66b3501c607585f49c3ea58029ffbc8042d))
+
 ## [0.12.12](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.11...v0.12.12) (2026-05-02)
 
 
