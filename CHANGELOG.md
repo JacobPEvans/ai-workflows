@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.13.1](https://github.com/JacobPEvans/ai-workflows/compare/v0.13.0...v0.13.1) (2026-05-03)
+
+
+### Bug Fixes
+
+* **ci:** remove deprecated app-id secret passthrough ([f0b762e](https://github.com/JacobPEvans/ai-workflows/commit/f0b762e4fcfb413144ba92c63f4356eadabb67b0))
+
 ## [0.13.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.12.12...v0.13.0) (2026-05-02)
 
 
