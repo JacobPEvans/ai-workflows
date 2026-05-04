@@ -12,6 +12,7 @@ Used by most workflows. Static prompt, read-only tools.
 **Workflows**: issue-triage, issue-hygiene, issue-sweeper, label-sync, project-router, repo-orchestrator, best-practices, next-steps (scheduled)
 
 **Key elements**:
+
 - `id-token: write` at both workflow-level and job-level permissions
 - Cross-repo checkout of `.github/prompts` and `.github/scripts`
 - `render-prompt.sh` to render the static prompt into a step output
@@ -46,6 +47,7 @@ Used by workflows that create commits or PRs. Adds `use_commit_signing: "true"` 
 **Additional permissions**: `contents: write`, `pull-requests: write`
 
 **Additional input**:
+
 ```yaml
 - name: Run Claude
   uses: anthropics/claude-code-action@v1
@@ -57,11 +59,16 @@ Used by workflows that create commits or PRs. Adds `use_commit_signing: "true"` 
     use_commit_signing: "true"
     prompt: ${{ steps.prompt.outputs.content }}
     claude_args: >-
-      --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(gh pr:*)"
+      --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),
+      Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(gh pr:*)"
       --model ${{ vars.AI_MODEL_EXAMPLE || vars.AI_MODEL }}
 ```
 
-Uses GitHub API commit signing. Commits are automatically verified as the Claude GitHub App. `Bash(git:*)` is restricted to read-only subcommands to prevent unsigned CLI commits.
+The `--allowedTools` value above spans two lines for readability; in production workflow files, keep it on
+a single line within the `>-` block (or consult `.github/workflows/*.yml` for the canonical form).
+
+Uses GitHub API commit signing. Commits are automatically verified as the Claude GitHub App.
+`Bash(git:*)` is restricted to read-only subcommands to prevent unsigned CLI commits.
 
 ---
 
@@ -90,7 +97,8 @@ The prompt file uses `${MERGE_SHA}` and `${REPO_FULL_NAME}` as placeholders.
 
 Used by workflows with a pre-check job that decides whether to run the expensive Claude step.
 
-**Workflows**: best-practices (check-recent-activity), post-merge-docs-review (check-relevance), post-merge-tests (check-test-infra), ci-fix (should-fix), issue-resolver (eligibility check)
+**Workflows**: best-practices (check-recent-activity), post-merge-docs-review (check-relevance), post-merge-tests (check-test-infra),
+ci-fix (should-fix), issue-resolver (eligibility check)
 
 **Structure**: Two jobs — a lightweight gating job followed by the Claude job that only runs if the gate passes:
 
@@ -115,7 +123,14 @@ jobs:
 
 Used when workflow logic exceeds the 5-line inline threshold.
 
-**Workflows**: ci-fix (find-pr.js, check-attempts.js, post-attempt-comment.js, get-failure-logs.js), best-practices (check-recent-activity.js), final-pr-review (check-gate.js), post-merge-docs-review (check-docs-relevance.js), post-merge-tests (check-test-infra.js), issue-resolver (check-eligibility.js)
+**Workflows and their extracted scripts**:
+
+- ci-fix: `find-pr.js`, `check-attempts.js`, `post-attempt-comment.js`, `get-failure-logs.js`
+- best-practices: `check-recent-activity.js`
+- final-pr-review: `check-gate.js`
+- post-merge-docs-review: `check-docs-relevance.js`
+- post-merge-tests: `check-test-infra.js`
+- issue-resolver: `check-eligibility.js`
 
 ```yaml
 - uses: actions/github-script@v8
@@ -138,13 +153,15 @@ Pass dynamic values (issue numbers, SHAs) via `env:` on the step, read via `proc
 
 ## Post-Merge Dispatch Pattern
 
-Used by consumer callers for post-merge workflows. `push` events are NOT supported by `claude-code-action@v1`, so callers re-dispatch as `workflow_dispatch` and pass the commit SHA as an input.
+Used by consumer callers for post-merge workflows. `push` events are NOT supported by `claude-code-action@v1`,
+so callers re-dispatch as `workflow_dispatch` and pass the commit SHA as an input.
 
 **Workflows (consumers)**: post-merge-docs-review, post-merge-tests
 
 **Why**: `push` events cause "Unsupported event type: push" failures in the Claude step. The reusable workflow runs fine under `workflow_dispatch`.
 
 **Reusable workflow** accepts a `commit_sha` input to override `github.sha`:
+
 ```yaml
 on:
   workflow_call:
@@ -156,6 +173,7 @@ on:
 ```
 
 **Consumer caller** (two-job pattern — dispatch on push, call reusable on workflow_dispatch):
+
 ```yaml
 name: Post-Merge Test Review
 on:
@@ -203,15 +221,20 @@ Four layers of bot filtering apply, depending on workflow type.
 
 ### Layer 1: Internal actor allowlist (`allowed_bots`)
 
-`claude-code-action@v1` internally rejects Bot-type `github.actor` values. All dispatch patterns (`gh workflow run` with `GITHUB_TOKEN`) set `github.actor` to `github-actions[bot]`, which would cause "Workflow initiated by non-human actor" failures.
+`claude-code-action@v1` internally rejects Bot-type `github.actor` values. All dispatch patterns
+(`gh workflow run` with `GITHUB_TOKEN`) set `github.actor` to `github-actions[bot]`, which would cause "Workflow initiated by non-human actor" failures.
 
 **Fix**: Every `claude-code-action@v1` step includes `allowed_bots: "github-actions"`. This allows the trusted internal dispatch actor while blocking external bots.
 
-**Exception**: ci-fix uses `allowed_bots: "github-actions,claude"` because `workflow_run` events propagate the original actor. When `claude[bot]` pushes a commit, `github.actor` is `claude[bot]` — the action strips `[bot]` and checks against `allowed_bots`. Loop prevention is handled by the attempt counter (max 2), not by blocking the actor.
+**Exception**: ci-fix uses `allowed_bots: "github-actions,claude"` because `workflow_run` events propagate the original actor.
+When `claude[bot]` pushes a commit, `github.actor` is `claude[bot]` — the action strips `[bot]` and checks against `allowed_bots`.
+Loop prevention is handled by the attempt counter (max 2), not by blocking the actor.
 
 ### Layer 2: PR author pre-check (`if:` on action steps)
 
-When a bot creates a PR (e.g., the `claude` GitHub App), `claude-code-action@v1`'s built-in bot guard hard-fails the step — producing a red CI failure. The fix: add an `if:` condition directly on the `claude-code-action` step (and any steps that depend on its output) to check the PR author type *before* the action runs.
+When a bot creates a PR (e.g., the `claude` GitHub App), `claude-code-action@v1`'s built-in bot guard hard-fails the step —
+producing a red CI failure. The fix: add an `if:` condition directly on the `claude-code-action` step
+(and any steps that depend on its output) to check the PR author type *before* the action runs.
 
 ```yaml
       - name: Run Claude Code Review
@@ -228,11 +251,13 @@ When a bot creates a PR (e.g., the `claude` GitHub App), `claude-code-action@v1`
 When a bot creates the PR and isn't in `allowed_bots`, the step shows as **skipped** (grey) — not failed (red). CI stays green.
 
 **Behavior by event type**:
+
 - `pull_request` events: `github.event.pull_request.user.type` is set — bot guard applies
 - `issue_comment` events (interactive job): `github.event.pull_request` is null → `'' != 'Bot'` → true — always runs
 - `workflow_run` events (ci-fix): `github.event.pull_request` is null → always runs
 
-**Consumer configuration**: PR-triggered workflows (`claude-review`, `final-pr-review`, `issue-linker`) and suites (`suite-pr`, `suite-all`) accept an `allowed_bots` input:
+**Consumer configuration**: PR-triggered workflows (`claude-review`, `final-pr-review`, `issue-linker`) and suites
+(`suite-pr`, `suite-all`) accept an `allowed_bots` input:
 
 ```yaml
 jobs:
@@ -247,7 +272,9 @@ Supports comma-separated logins or `*` to allow all bots.
 
 ### Layer 3: Dependency bot filtering (`if:` guards)
 
-PR-triggered workflows (claude-review, final-pr-review, issue-linker, pr-issue-linker) add `if:` guards on their first job to skip runs triggered by dependency bots (Renovate, Dependabot) and the Claude GitHub App. This produces a clean **skipped** (grey) status instead of a **failed** (red) status.
+PR-triggered workflows (claude-review, final-pr-review, issue-linker, pr-issue-linker) add `if:` guards on their first job
+to skip runs triggered by dependency bots (Renovate, Dependabot) and the Claude GitHub App.
+This produces a clean **skipped** (grey) status instead of a **failed** (red) status.
 
 ```yaml
   gate-check:
@@ -257,13 +284,17 @@ PR-triggered workflows (claude-review, final-pr-review, issue-linker, pr-issue-l
       github.actor != 'claude[bot]'
 ```
 
-**Exception**: ci-fix does NOT block `claude[bot]` — it only blocks dependency bots (`renovate[bot]`, `dependabot[bot]`). When Claude creates a PR and CI fails, ci-fix needs to run. Loop prevention is handled by the attempt counter (`check-attempts.js`, max 2 attempts per PR), not by blocking the actor.
+**Exception**: ci-fix does NOT block `claude[bot]` — it only blocks dependency bots (`renovate[bot]`, `dependabot[bot]`).
+When Claude creates a PR and CI fails, ci-fix needs to run.
+Loop prevention is handled by the attempt counter (`check-attempts.js`, max 2 attempts per PR), not by blocking the actor.
 
 **Why at the job level**: Skipping the first job causes GitHub to show all downstream jobs as skipped too — a clean grey tree.
 
 ### Layer 4: Post-merge commit-author check (JS scripts)
 
-For post-merge workflows (push→dispatch pattern), `github.actor` in the re-dispatched `workflow_dispatch` run is `github-actions[bot]` — not the original merger. The gate scripts (`check-docs-relevance.js`, `check-test-infra.js`) instead check the **commit author** via the GitHub API and early-return when it matches a dependency bot.
+For post-merge workflows (push→dispatch pattern), `github.actor` in the re-dispatched `workflow_dispatch` run is
+`github-actions[bot]` — not the original merger. The gate scripts (`check-docs-relevance.js`, `check-test-infra.js`)
+instead check the **commit author** via the GitHub API and early-return when it matches a dependency bot.
 
 ```javascript
 const authorLogin = commit.author?.login || '';
@@ -280,14 +311,17 @@ if (automationBots.includes(authorLogin)) {
 
 ## AI Dispatch Pattern
 
-Used by consumer `issue-auto-resolve.yml` callers to dispatch issues through the triage + resolve pipeline. All actors (human and bot) are welcome — cost control is via daily dispatch limits, not bot filtering.
+Used by consumer `issue-auto-resolve.yml` callers to dispatch issues through the triage + resolve pipeline.
+All actors (human and bot) are welcome — cost control is via daily dispatch limits, not bot filtering.
 
 **Triggers**:
+
 - `issues: opened` — new issues auto-dispatch
 - `issues: labeled` with `ai:ready` — re-trigger mechanism for existing issues
 
 **Flow**:
-```
+
+```text
 issues:opened  → dispatch job → workflow_dispatch → triage → resolve
 issues:labeled → (ai:ready?)  → workflow_dispatch → triage → resolve
                    ↑ safety:
@@ -296,6 +330,7 @@ issues:labeled → (ai:ready?)  → workflow_dispatch → triage → resolve
 ```
 
 **Consumer caller** (three-job unified pattern):
+
 ```yaml
 name: Issue Auto-Resolve
 on:
@@ -376,6 +411,7 @@ jobs:
 ```
 
 **Key points**:
+
 - `WORKFLOW_NAME` and `REPO` passed via `env:` (not inline `${{ }}`) to prevent template injection
 - `always()` on `resolve-issue` ensures it runs even when `run-triage` was skipped
 - `ai:ready` label is the re-trigger mechanism — removed after dispatch so it can be re-applied
@@ -413,6 +449,7 @@ jobs:
 ```
 
 The `if:` condition handles two trigger modes:
+
 - **Link mode** (`opened`): Runs when a non-draft PR is opened, linking issues and posting reviews for related issues
 - **Close mode** (`closed` + `merged`): Runs when a PR merges, closing resolved issues with a reference comment
 
@@ -427,9 +464,11 @@ All PR-creating workflows attach a standardized provenance footer to every PR bo
 **Workflows**: code-simplifier, next-steps, post-merge-docs-review, post-merge-tests, issue-resolver
 **Variant**: ci-fix appends provenance to the commit message instead of PR body
 
-**How it works**: Five env vars are passed to `render-prompt.sh` on the render step. The prompt template includes a footer instruction using `${VAR}` placeholders, which `envsubst` expands at render time.
+**How it works**: Five env vars are passed to `render-prompt.sh` on the render step.
+The prompt template includes a footer instruction using `${VAR}` placeholders, which `envsubst` expands at render time.
 
 **Env vars added to render steps**:
+
 ```yaml
 env:
   WORKFLOW_NAME: ${{ github.workflow }}
@@ -440,12 +479,14 @@ env:
 ```
 
 **Footer format** (appended to PR body):
-```
+
+```markdown
 ---
 > **AI Provenance** | Workflow: `${WORKFLOW_NAME}` | [Run ${RUN_ID}](${RUN_URL}) | Event: `${EVENT_NAME}` | Actor: `${TRIGGER_ACTOR}`
 ```
 
-**Why prompt-based** (not a post-step): `claude-code-action@v1` doesn't expose a PR number output, making post-creation API appends fragile. The prompt approach fits the existing `render-prompt.sh` + `envsubst` pattern with no additional steps.
+**Why prompt-based** (not a post-step): `claude-code-action@v1` doesn't expose a PR number output, making post-creation API appends fragile.
+The prompt approach fits the existing `render-prompt.sh` + `envsubst` pattern with no additional steps.
 
 ---
 
@@ -457,13 +498,57 @@ All AI workflows use `cancel-in-progress: false`. This queues new runs behind in
 
 **Rule**: AI workflows must NEVER use `cancel-in-progress: true`. Consumer repos must NOT override this at their caller level.
 
+**Exception**: `gh aw`-compiled workflows (e.g., `ai-moderator.lock.yml`) embed `cancel-in-progress: true` in their `concurrency:` group.
+The lockfile is auto-generated by `gh aw compile` — not directly editable. This rule applies to the Claude reusable workflows
+we author and control, not to lockfiles produced by third-party compilers.
+See [AI Moderator UNSTABLE Workaround](#ai-moderator-unstable-workaround) for the downstream effect.
+
 **Concurrency group scoping**: Groups are scoped per-entity (PR number, issue number, branch) so different entities run concurrently while the same entity queues:
 
 ```yaml
 concurrency:
-  group: claude-review-${{ github.repository }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
+  group: >-
+    claude-review-${{ github.repository }}-${{ github.event_name }}-
+    ${{ github.event.pull_request.number || github.event.issue.number || github.ref }}
   cancel-in-progress: false  # Never cancel — queue instead to avoid wasting AI tokens
 ```
+
+---
+
+## AI Moderator UNSTABLE Workaround
+
+When a PR opened by a repo admin (any account with `admin`, `maintainer`, `write`, or `triage` role) shows
+`mergeStateStatus: UNSTABLE` with **AI Moderator / conclusion** as the only failing check,
+the failure is benign: the agent was intentionally bypassed via `skip-roles`, not a real moderation failure.
+
+**Symptom**: `gh pr view <pr> --json mergeStateStatus -q '.mergeStateStatus'` returns `UNSTABLE`.
+`gh run view <run-id> --json jobs --jq '.jobs[] | {name,conclusion}'` shows `agent: cancelled` + `conclusion: failure`.
+
+**Root cause A — gh-aw concurrency cancellation**: `ai-moderator.lock.yml` is auto-generated by `gh aw compile` and
+embeds `cancel-in-progress: true`. When two events fire within seconds for the same PR
+(e.g., `pull_request: opened` then `issue_comment: created` from a bot), gh-aw cancels the first run.
+This is outside our control — the lock file is owned by the compiler (see [Concurrency Pattern](#concurrency-pattern) exception).
+
+**Root cause B — unguarded `conclusion` job** (tracked in issue #203): The `conclusion` job's `if:` condition guards
+against `agent.result == 'skipped'` but not `agent.result == 'cancelled'`. When activation is cancelled,
+`needs.activation.outputs.setup-trace-id` is empty, the job's setup step fails to copy scripts, and
+`conclusion` exits with `failure` instead of `success`/`skipped`.
+
+**Workaround (manual)**: Push an empty commit to the PR branch. This retriggers AI Moderator; without a simultaneous competing event, the workflow completes cleanly.
+
+```bash
+# Verify AI Moderator is the only failing check and agent was cancelled (not failed-on-merit):
+gh pr checks <pr-number> --json name,bucket | jq '[.[] | select(.bucket=="fail")]'
+gh run list --workflow=ai-moderator.lock.yml --limit 3 --json databaseId,conclusion,headBranch
+gh run view <run-id> --json jobs --jq '.jobs[] | select(.conclusion != "success") | {name,conclusion}'
+
+# If only conclusion: failure with agent: cancelled → kick it:
+git commit --allow-empty -m "chore: kick AI Moderator"
+git push
+```
+
+**Durable fix**: Issue #203 — the conclusion job needs `needs.agent.result != 'cancelled'` added to its `if:` guard
+in the upstream `githubnext/agentics` repo. Until that ships via a `gh aw upgrade`, the empty-commit kick is the remedy.
 
 ---
 
@@ -475,6 +560,7 @@ Consumer repos receive real-time Slack alerts in `#github-automation` when Claud
 **Filter**: Only fires for PRs authored by `claude[bot]`
 
 **Consumer caller** (added to each repo):
+
 ```yaml
 name: AI PR Notification
 on:
@@ -491,8 +577,10 @@ jobs:
 **Required secret**: `GH_SLACK_WEBHOOK_URL_GITHUB_AUTOMATION` (Slack Incoming Webhook URL for `#github-automation`, synced from Doppler via secrets-sync)
 
 **Message content** (Slack Block Kit):
+
 - Header: "AI-Created PR Opened"
 - PR title + link
 - Provenance fields: Workflow, Event, Actor, Run link (extracted from PR body footer)
 
-**Implementation**: Extracted script at `.github/scripts/notification/send-slack-pr-notify.js`. Parses the AI Provenance footer from the PR body using regex to populate the Slack message fields.
+**Implementation**: Extracted script at `.github/scripts/notification/send-slack-pr-notify.js`.
+Parses the AI Provenance footer from the PR body using regex to populate the Slack message fields.
