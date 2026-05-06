@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.13.3](https://github.com/JacobPEvans/ai-workflows/compare/v0.13.2...v0.13.3) (2026-05-06)
+
+
+### Bug Fixes
+
+* **issue-resolver:** restrict git tools to read-only to enforce signed commits ([14b27a3](https://github.com/JacobPEvans/ai-workflows/commit/14b27a3c698768f6522ce5acb74b89fd138a038c))
+
 ## [0.13.2](https://github.com/JacobPEvans/ai-workflows/compare/v0.13.1...v0.13.2) (2026-05-04)
 
 
