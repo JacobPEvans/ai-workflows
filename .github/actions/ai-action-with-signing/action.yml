@@ -5,10 +5,10 @@ description: |
   path (which uses the GitHub Contents API and cannot perform local git operations like
   rebase/cherry-pick) with the action's native SSH signing path.
 
-  Signing identity: JacobPEvans (user id 20714140). The matching SSH public key is registered
-  on the JacobPEvans user account at key id 826672 ("Doppler stored GitHub Actions Claude
-  GPG Key for direct pull request generation with signed commits"). Bot attribution belongs
-  in a Co-authored-by: trailer appended by the prompt (see ai-workflows shared prompts).
+  Signing identity: the GitHub user whose SSH signing key the caller supplies via
+  ssh_signing_key. Bot/automation attribution (e.g. "Co-authored-by: <bot>") belongs in the
+  commit body via the prompt, not in the author field — the author MUST match the
+  ssh_signing_key owner for GitHub to verify the signature.
 
 inputs:
   prompt:
@@ -32,11 +32,11 @@ inputs:
     required: false
     default: "github-actions"
   bot_id:
-    description: GitHub numeric user id used for the commit author (combined with bot_name to form the noreply email). Default is JacobPEvans's user id, which owns the SSH signing key.
+    description: GitHub numeric user id used for the commit author (combined with bot_name to form the noreply email). MUST match the user account that owns the public counterpart of ssh_signing_key for signatures to verify. Default fits the current canonical key registration; override if rotating to a different signing identity.
     required: false
     default: "20714140"
   bot_name:
-    description: GitHub username used for the commit author. Must match a verified-email owner of the SSH signing key for signatures to verify.
+    description: GitHub username used for the commit author. MUST match the user account that owns the public counterpart of ssh_signing_key. Default fits the current canonical key registration.
     required: false
     default: "JacobPEvans"
 
@@ -54,4 +54,4 @@ runs:
         prompt: ${{ inputs.prompt }}
         claude_args: >-
           --allowedTools "${{ inputs.allowed_tools }}"
-          ${{ inputs.model != '' && format('--model {0}', inputs.model) || '' }}
+          ${{ inputs.model != '' && format('--model "{0}"', inputs.model) || '' }}
