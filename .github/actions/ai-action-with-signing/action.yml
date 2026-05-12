@@ -1,0 +1,57 @@
+name: AI Action with SSH Signing
+description: |
+  Run anthropics/claude-code-action@v1 with SSH commit signing pre-configured so every
+  commit Claude makes is GitHub-verified. Replaces the runner-side `use_commit_signing: "true"`
+  path (which uses the GitHub Contents API and cannot perform local git operations like
+  rebase/cherry-pick) with the action's native SSH signing path.
+
+  Signing identity: JacobPEvans (user id 20714140). The matching SSH public key is registered
+  on the JacobPEvans user account at key id 826672 ("Doppler stored GitHub Actions Claude
+  GPG Key for direct pull request generation with signed commits"). Bot attribution belongs
+  in a Co-authored-by: trailer appended by the prompt (see ai-workflows shared prompts).
+
+inputs:
+  prompt:
+    description: Fully-rendered prompt content passed to Claude (typically the `content` output of render-prompt.sh).
+    required: true
+  allowed_tools:
+    description: Comma-separated list of tools to allow Claude to use (passed to --allowedTools).
+    required: true
+  model:
+    description: Optional Claude model identifier (passed to --model). Defaults to empty, letting the action resolve via env.
+    required: false
+    default: ""
+  anthropic_api_key:
+    description: API key for the model provider (use secrets.OPENROUTER_API_KEY for the canonical OpenRouter routing).
+    required: true
+  ssh_signing_key:
+    description: SSH private key for commit signing (use secrets.GH_APP_CLAUDE_SSH_SIGNING_KEY). The public counterpart MUST be registered on the GitHub user identified by bot_id.
+    required: true
+  allowed_bots:
+    description: Comma-separated bot actors permitted to trigger Claude. Default permits the github-actions[bot] that fires from dispatch / workflow_run flows.
+    required: false
+    default: "github-actions"
+  bot_id:
+    description: GitHub numeric user id used for the commit author (combined with bot_name to form the noreply email). Default is JacobPEvans's user id, which owns the SSH signing key.
+    required: false
+    default: "20714140"
+  bot_name:
+    description: GitHub username used for the commit author. Must match a verified-email owner of the SSH signing key for signatures to verify.
+    required: false
+    default: "JacobPEvans"
+
+runs:
+  using: composite
+  steps:
+    - name: Run Claude Code (SSH-signed via ssh_signing_key)
+      uses: anthropics/claude-code-action@v1
+      with:
+        anthropic_api_key: ${{ inputs.anthropic_api_key }}
+        ssh_signing_key: ${{ inputs.ssh_signing_key }}
+        allowed_bots: ${{ inputs.allowed_bots }}
+        bot_id: ${{ inputs.bot_id }}
+        bot_name: ${{ inputs.bot_name }}
+        prompt: ${{ inputs.prompt }}
+        claude_args: >-
+          --allowedTools "${{ inputs.allowed_tools }}"
+          ${{ inputs.model != '' && format('--model {0}', inputs.model) || '' }}
