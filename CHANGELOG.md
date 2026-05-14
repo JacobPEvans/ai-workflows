@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.13.6](https://github.com/JacobPEvans/ai-workflows/compare/v0.13.5...v0.13.6) (2026-05-14)
+
+
+### Bug Fixes
+
+* **deps:** refresh gh-aw action SHA pins ([#215](https://github.com/JacobPEvans/ai-workflows/issues/215)) ([8716952](https://github.com/JacobPEvans/ai-workflows/commit/87169525c7e36f139242604198dd253955791c95))
+
 ## [0.13.5](https://github.com/JacobPEvans/ai-workflows/compare/v0.13.4...v0.13.5) (2026-05-11)
 
 
