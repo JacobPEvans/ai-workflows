@@ -117,17 +117,22 @@ jobs:
             .github/prompts
           path: .ai-workflows
 
+      # Evaluate the bot-eligibility predicate once and reuse via step output,
+      # so mint + Run Claude can't drift apart. Expression is evaluated by
+      # GitHub Actions and produces a literal "true" or "false" string.
+      - name: Check bot eligibility
+        id: bot-check
+        run: echo "run=${{ github.event.pull_request.user.type != 'Bot' || contains(inputs.allowed_bots, github.event.pull_request.user.login) || contains(inputs.allowed_bots, '*') }}" >> "$GITHUB_OUTPUT"
+
       - name: Render prompt
         id: prompt
+        if: steps.bot-check.outputs.run == 'true'
         env:
           PR_NUMBER: ${{ needs.gate-check.outputs.pr_number }}
         run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/final-pr-review.md
 
       - name: Mint JacobPEvans-claude installation token
-        if: >-
-          github.event.pull_request.user.type != 'Bot' ||
-          contains(inputs.allowed_bots, github.event.pull_request.user.login) ||
-          contains(inputs.allowed_bots, '*')
+        if: steps.bot-check.outputs.run == 'true'
         id: app-token
         uses: actions/create-github-app-token@v2
         with:
@@ -137,10 +142,7 @@ jobs:
           repositories: ${{ github.event.repository.name }}
 
       - name: Run Claude Code
-        if: >-
-          github.event.pull_request.user.type != 'Bot' ||
-          contains(inputs.allowed_bots, github.event.pull_request.user.login) ||
-          contains(inputs.allowed_bots, '*')
+        if: steps.bot-check.outputs.run == 'true'
         uses: anthropics/claude-code-action@v1
         with:
           github_token: ${{ steps.app-token.outputs.token }}
