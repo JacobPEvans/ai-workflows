@@ -136,26 +136,15 @@ jobs:
           TRIGGER_ACTOR: ${{ github.triggering_actor }}
         run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/issue-resolver.md REPO_CONTEXT ISSUE_NUMBER ISSUE_TITLE ISSUE_BODY ISSUE_LABELS ATTEMPT MAX_ATTEMPTS WORKFLOW_NAME RUN_ID RUN_URL EVENT_NAME TRIGGER_ACTOR
 
-      - name: Mint JacobPEvans-claude installation token
-        id: app-token
-        uses: actions/create-github-app-token@v2
+      - name: Run Claude Code with bot attribution
+        uses: JacobPEvans/ai-workflows/.github/actions/run-claude-code@main
         with:
-          app-id: ${{ vars.GH_APP_CLAUDE_BOT_ID }}
-          private-key: ${{ secrets.GH_APP_CLAUDE_BOT_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: ${{ github.event.repository.name }}
-
-      - name: Run Claude Code
-        uses: anthropics/claude-code-action@v1
-        with:
-          github_token: ${{ steps.app-token.outputs.token }}
-          anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
-          allowed_bots: "github-actions"
-          use_commit_signing: "true"
           prompt: ${{ steps.prompt.outputs.content }}
-          claude_args: >-
-            --allowedTools "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(gh pr create:*),Bash(gh issue comment:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
-            --model ${{ inputs.model || vars.AI_MODEL_PLAN || vars.AI_MODEL || 'openrouter/free' }}
+          model: ${{ inputs.model || vars.AI_MODEL_PLAN || vars.AI_MODEL || 'openrouter/free' }}
+          allowed_tools: "Edit,MultiEdit,Write,Read,Glob,Grep,LS,Bash(git log:*),Bash(git diff:*),Bash(git show:*),Bash(git status:*),Bash(git branch:*),Bash(gh pr create:*),Bash(gh issue comment:*)${{ inputs.extra_tools != '' && format(',{0}', inputs.extra_tools) || '' }}"
+          anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          app_id: ${{ vars.GH_APP_CLAUDE_BOT_ID }}
+          app_private_key: ${{ secrets.GH_APP_CLAUDE_BOT_PRIVATE_KEY }}
 
       - name: Comment on failure
         if: failure()
