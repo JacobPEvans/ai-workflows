@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.14.0](https://github.com/JacobPEvans/ai-workflows/compare/v0.13.6...v0.14.0) (2026-05-17)
+
+
+### Features
+
+* **actions:** centralize claude-code-action invocation via composite ([#217](https://github.com/JacobPEvans/ai-workflows/issues/217)) ([a06a2f0](https://github.com/JacobPEvans/ai-workflows/commit/a06a2f0b86cbf5e26547260f55fd6ce23fa6f8f4))
+
 ## [0.13.6](https://github.com/JacobPEvans/ai-workflows/compare/v0.13.5...v0.13.6) (2026-05-14)
 
 
