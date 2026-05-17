@@ -1,0 +1,66 @@
+name: Run Claude Code with bot attribution
+description: >-
+  Mints a JacobPEvans-claude App installation token and invokes
+  anthropics/claude-code-action@v1 with that token, so every commit and PR
+  comment is attributed to JacobPEvans-claude[bot] via the Contents API
+  web-flow signing path. Centralizes the token-mint and action invocation
+  that previously had to be copy-pasted into every reusable workflow.
+
+inputs:
+  prompt:
+    description: Rendered prompt content sent to Claude (typically `${{ steps.prompt.outputs.content }}`).
+    required: true
+  model:
+    description: >-
+      Model name forwarded as `--model`. The caller resolves the appropriate
+      `vars.AI_MODEL_*` chain; this action does not pick a default.
+    required: true
+  allowed_tools:
+    description: >-
+      Full --allowedTools value forwarded inside `claude_args`. Each caller
+      owns its own tool scope so the policy stays visible in the workflow.
+    required: true
+  anthropic_api_key:
+    description: API key for the LLM provider (e.g. OpenRouter). Pass-through; treat as secret at the caller.
+    required: true
+  app_id:
+    description: JacobPEvans-claude App ID, e.g. `${{ vars.GH_APP_CLAUDE_BOT_ID }}`.
+    required: true
+  app_private_key:
+    description: JacobPEvans-claude App private key PEM, e.g. `${{ secrets.GH_APP_CLAUDE_BOT_PRIVATE_KEY }}`.
+    required: true
+  allowed_bots:
+    description: Comma-separated bot logins claude-code-action may process.
+    required: false
+    default: github-actions
+  use_commit_signing:
+    description: >-
+      "true" to route commits through the Contents API (web-flow signed and
+      attributed to the App). "false" for review-only callers that make no
+      commits.
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Mint JacobPEvans-claude installation token
+      id: app-token
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ inputs.app_id }}
+        private-key: ${{ inputs.app_private_key }}
+        owner: ${{ github.repository_owner }}
+        repositories: ${{ github.event.repository.name }}
+
+    - name: Run Claude Code
+      uses: anthropics/claude-code-action@v1
+      with:
+        github_token: ${{ steps.app-token.outputs.token }}
+        anthropic_api_key: ${{ inputs.anthropic_api_key }}
+        allowed_bots: ${{ inputs.allowed_bots }}
+        use_commit_signing: ${{ inputs.use_commit_signing }}
+        prompt: ${{ inputs.prompt }}
+        claude_args: >-
+          --allowedTools "${{ inputs.allowed_tools }}"
+          --model ${{ inputs.model }}

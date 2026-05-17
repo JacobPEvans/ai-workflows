@@ -117,25 +117,31 @@ jobs:
             .github/prompts
           path: .ai-workflows
 
+      # Evaluate the bot-eligibility predicate once and reuse via step output,
+      # so mint + Run Claude can't drift apart. Expression is evaluated by
+      # GitHub Actions and produces a literal "true" or "false" string.
+      - name: Check bot eligibility
+        id: bot-check
+        run: echo "run=${{ github.event.pull_request.user.type != 'Bot' || contains(inputs.allowed_bots, github.event.pull_request.user.login) || contains(inputs.allowed_bots, '*') }}" >> "$GITHUB_OUTPUT"
+
       - name: Render prompt
         id: prompt
+        if: steps.bot-check.outputs.run == 'true'
         env:
           PR_NUMBER: ${{ needs.gate-check.outputs.pr_number }}
         run: bash .ai-workflows/.github/scripts/render-prompt.sh .ai-workflows/.github/prompts/final-pr-review.md
 
-      - name: Run Claude Code
-        if: >-
-          github.event.pull_request.user.type != 'Bot' ||
-          contains(inputs.allowed_bots, github.event.pull_request.user.login) ||
-          contains(inputs.allowed_bots, '*')
-        uses: anthropics/claude-code-action@v1
+      - name: Run Claude Code with bot attribution
+        if: steps.bot-check.outputs.run == 'true'
+        uses: JacobPEvans/ai-workflows/.github/actions/run-claude-code@main
         with:
-          anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
-          allowed_bots: "github-actions"
           prompt: ${{ steps.prompt.outputs.content }}
-          claude_args: >-
-            --model ${{ vars.AI_MODEL_REVIEW || vars.AI_MODEL || 'openrouter/free' }}
-            --allowedTools "Read,Glob,Grep,LS,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr review:*)"
+          model: ${{ vars.AI_MODEL_REVIEW || vars.AI_MODEL || 'openrouter/free' }}
+          allowed_tools: "Read,Glob,Grep,LS,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr review:*)"
+          anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          app_id: ${{ vars.GH_APP_CLAUDE_BOT_ID }}
+          app_private_key: ${{ secrets.GH_APP_CLAUDE_BOT_PRIVATE_KEY }}
+          use_commit_signing: "false"
 
   add-label:
     name: Mark as reviewed
